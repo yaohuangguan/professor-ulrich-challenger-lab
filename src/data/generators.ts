@@ -274,7 +274,7 @@ function tcpSequenceAck(): Question {
 
 function tcpWindow(): Question {
   const awnd = pick([16, 32, 64, 128])
-  const cwnd = pick([8, 16, 32, 64])
+  const cwnd = pick([8, 16, 32, 64].filter((value) => value !== awnd))
   const result = Math.min(awnd, cwnd)
   return optionQuestion({
     domain: 'tcp',

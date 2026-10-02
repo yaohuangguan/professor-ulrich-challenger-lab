@@ -407,3 +407,95 @@ professorQuestions.push(
     tags: ['Professor U', 'XYZ', 'TCP', 'Hybla', 'CUBIC']
   }
 )
+
+
+professorQuestions.push(
+  {
+    id: 'prof-tcp-conversation-chain',
+    domain: 'tcp',
+    topic: 'Sequence and ACK numbers',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'Alice uses ISN 1000 and Bob uses ISN 5000. The handshake completes. Alice then sends 600 bytes. Bob receives them all and sends 400 bytes of his own data back to Alice.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'Alice’s 600-byte data segment can start at SEQ 1001, and Bob can acknowledge it with ACK 1601.',
+      'Bob’s first 400 payload bytes can start at SEQ 5001, and after Alice receives them contiguously her ACK can be 5401.',
+      'If Alice next sends more data, her next SEQ should go back to 1001 because Bob has now sent data in the opposite direction.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. TCP maintains an independent byte stream in each direction. Alice’s sequence space advances from 1001 by 600 bytes to 1601; Bob’s advances from 5001 by 400 bytes to 5401. Bob sending data does not reset Alice’s sequence space.',
+    trap: 'TCP is bi-directional, but the two directions have separate sequence spaces.',
+    source: 'TCP Fundamentals + TCP quick re-cap — handshake and mid-stream sequencing',
+    tags: ['Professor U', 'XYZ', 'TCP', 'sequence space', 'bidirectional']
+  },
+  {
+    id: 'prof-tcp-loss-chain',
+    domain: 'tcp',
+    topic: 'Loss recovery',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A sender transmits four 500-byte segments starting at SEQ 1001, 1501, 2001 and 2501. The segment starting at 1501 is lost. The receiver gets the 1001 segment, then later receives the 2001 and 2501 segments out of order.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'After receiving the first segment, the receiver can send ACK 1501.',
+      'When the 2001 and 2501 segments arrive while 1501 is still missing, the receiver can repeat ACK 1501.',
+      'Because bytes through 2999 have physically arrived, the cumulative ACK should immediately jump to 3001 even before the missing 1501 segment is recovered.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. The cumulative ACK identifies the next missing byte. Later out-of-order data does not move the cumulative ACK across the gap, so repeated ACK 1501 can signal the loss and support fast retransmission.',
+    trap: 'Physical arrival of later bytes is not enough to advance a cumulative ACK past a missing gap.',
+    source: 'TCP Fundamentals + TCP quick re-cap — out-of-order data and duplicate ACKs',
+    tags: ['Professor U', 'XYZ', 'TCP', 'duplicate ACK', 'cumulative ACK']
+  },
+  {
+    id: 'prof-tcp-three-limits',
+    domain: 'tcp',
+    topic: 'Transmission window',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A sender has 80 KB of application data ready. The receiver advertises 64 KB. The sender’s cwnd is 16 KB.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'The sender can have at most 16 KB of this data unacknowledged in flight under these constraints.',
+      'If cwnd later rises to 96 KB while the other values stay unchanged, the 64 KB advertised window becomes the active network-transfer limit.',
+      'Because the application has 80 KB ready, the sender may ignore both cwnd and the advertised window and send all 80 KB immediately.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. The recap lists data available, the other side’s advertised window and the sender’s congestion window as limits. The smallest applicable value wins: first 16 KB, then 64 KB if cwnd rises to 96 KB.',
+    trap: 'Application demand is only one constraint; it does not override flow control or congestion control.',
+    source: 'TCP quick re-cap — sender transmit window',
+    tags: ['Professor U', 'XYZ', 'TCP', 'transmission window', 'cwnd', 'advertised window']
+  },
+  {
+    id: 'prof-tcp-bdp-cwnd',
+    domain: 'tcp',
+    topic: 'Congestion control',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A path has 100 Mb/s available rate and 500 ms RTT. Ignore protocol overhead. A sender currently has cwnd = 16 KB and the receiver advertises much more than that.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'The path bandwidth-delay product is about 50 Mbit, or 6.25 MB.',
+      'A 16 KB cwnd is far below that BDP, so cwnd can strongly limit utilisation even if the receiver window is large.',
+      'Increasing the receiver’s advertised window further must by itself make the sender fill the 6.25 MB BDP.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. BDP = 100 Mb/s × 0.5 s = 50 Mbit = 6.25 MB. With cwnd only 16 KB, cwnd remains the tighter constraint, so enlarging an already-large advertised window does not remove the congestion-window limit.',
+    trap: 'A large receiver window does not cancel a small sender congestion window.',
+    source: 'TCP quick re-cap — cwnd goal and bandwidth-delay product',
+    tags: ['Professor U', 'XYZ', 'TCP', 'BDP', 'cwnd']
+  }
+)

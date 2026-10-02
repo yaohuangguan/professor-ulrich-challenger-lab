@@ -331,12 +331,90 @@ function tcpLossXYZ(): Question {
   }, truth, 'prof-gen-tcp-loss')
 }
 
+function tcpConversationChainXYZ(): Question {
+  const clientIsn = pick([1000, 2400, 7000])
+  const serverIsn = pick([5000, 9000, 15000])
+  const clientBytes = pick([400, 600, 800, 1200])
+  const serverBytes = pick([300, 500, 900])
+  const clientNext = clientIsn + 1 + clientBytes
+  const serverNext = serverIsn + 1 + serverBytes
+  const truth = [true, true, false]
+
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Sequence and ACK numbers',
+    difficulty: 'brutal',
+    context: `A TCP handshake completes with client ISN ${clientIsn} and server ISN ${serverIsn}. The client then sends ${clientBytes} bytes, all received. The server then sends ${serverBytes} bytes, all received.`,
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      `The server can cumulatively acknowledge the client data with ACK ${clientNext}.`,
+      `The client can cumulatively acknowledge the server data with ACK ${serverNext}.`,
+      `The server sending its own payload means the client’s next data SEQ resets to ${clientIsn + 1}.`,
+    ],
+    explanation: `X and Y are true. TCP keeps independent byte streams in each direction. The client sequence space advances to ${clientNext}; the server sequence space advances to ${serverNext}. Neither direction resets because the other side sent data.`,
+    trap: 'Keep the two sequence spaces separate.',
+    source: 'Generated from TCP handshake and mid-stream sequencing material',
+    tags: ['TCP', 'sequence space', 'bidirectional'],
+  }, truth, 'prof-gen-tcp-chain')
+}
+
+function tcpGapRecoveryXYZ(): Question {
+  const base = pick([1001, 5001, 12001])
+  const size = pick([400, 500, 1000])
+  const missing = base + size
+  const later1 = base + size * 2
+  const later2 = base + size * 3
+  const truth = [true, true, false]
+
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Loss recovery',
+    difficulty: 'brutal',
+    context: `Four equal ${size}-byte segments start at SEQ ${base}, ${missing}, ${later1}, and ${later2}. The segment starting at ${missing} is lost; the later two arrive out of order.`,
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      `After the first segment, the next cumulative ACK can be ${missing}.`,
+      `Arrival of the later out-of-order segments can produce repeated ACK ${missing} while the gap remains.`,
+      `The cumulative ACK should jump to ${base + size * 4} before the missing segment is retransmitted because later bytes have already arrived.`,
+    ],
+    explanation: `X and Y are true. The cumulative ACK remains at the next missing byte, ${missing}, until the gap is filled. Later out-of-order arrivals can therefore create duplicate ACKs and enable retransmission before an RTO.`,
+    trap: 'Cumulative ACK tracks the contiguous prefix, not the highest byte seen anywhere.',
+    source: 'Generated from TCP duplicate-ACK / fast-retransmit material',
+    tags: ['TCP', 'duplicate ACK', 'cumulative ACK'],
+  }, truth, 'prof-gen-tcp-loss-chain')
+}
+
+function tcpCombinedWindowXYZ(): Question {
+  const app = pick([8, 24, 80, 128])
+  const awnd = pick([16, 32, 64, 128])
+  const cwnd = pick([8, 16, 32, 96])
+  const limit = Math.min(app, awnd, cwnd)
+  const truth = [true, true, false]
+
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Transmission window',
+    difficulty: 'brutal',
+    context: `The sender has ${app} KB of application data ready, the receiver advertises ${awnd} KB, and the sender’s cwnd is ${cwnd} KB.`,
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      `The sender can have at most ${limit} KB of this application data unacknowledged in flight under the stated constraints.`,
+      'A smaller advertised window can limit sending even if cwnd is larger.',
+      'If application data is available, the sender can always transmit more than cwnd as long as the receiver buffer has space.',
+    ],
+    explanation: `X and Y are true. The practical send amount is constrained by data available, the receiver-advertised window, and cwnd; here the smallest value is ${limit} KB. Receiver capacity does not override a smaller congestion window.`,
+    trap: 'There are three different caps here; calculate the minimum instead of focusing on one “window”.',
+    source: 'Generated from TCP sender transmit-window material',
+    tags: ['TCP', 'transmission window', 'advertised window', 'cwnd'],
+  }, truth, 'prof-gen-tcp-three-limits')
+}
+
 export function generateProfessorQuestion(domain: Domain, difficulty: Difficulty): Question {
   const byDomain: Record<Domain, Array<() => Question>> = {
     wireless: [wirelessBudgetXYZ, wirelessWordingXYZ],
     satellite: [satelliteQueueXYZ, satelliteFlowXYZ],
     starlink: [starlinkUsabilityXYZ, starlinkCapacityXYZ, starlinkIslXYZ],
-    tcp: [tcpHandshakeXYZ, tcpAckXYZ, tcpWindowXYZ, tcpSlowStartXYZ, tcpLossXYZ],
+    tcp: [tcpHandshakeXYZ, tcpAckXYZ, tcpWindowXYZ, tcpSlowStartXYZ, tcpLossXYZ, tcpConversationChainXYZ, tcpGapRecoveryXYZ, tcpCombinedWindowXYZ],
   }
   const q = pick(byDomain[domain])()
   if (difficulty === 'core') q.difficulty = 'core'

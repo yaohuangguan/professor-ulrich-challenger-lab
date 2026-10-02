@@ -146,9 +146,18 @@ const exactTrap =
   /^(only|must|will|need to|necessarily|always|never|input|output|visible|usable|aggregate|underutilisation|underutilization|high utilisation|high utilization|all|exactly|guarantee(?:d)?|up to|could|every|regardless)$/i
 
 function highlightedText(text: string) {
-  return text.split(trapRegex).map((part, i) =>
-    exactTrap.test(part) ? <mark key={i}>{part}</mark> : part,
-  )
+  const parts = text.split(trapRegex)
+
+  return parts.map((part, i) => {
+    const previous = parts[i - 1] ?? ''
+    const next = parts[i + 1] ?? ''
+    const embeddedInWord =
+      /[A-Za-z]$/.test(previous) || /^[A-Za-z]/.test(next)
+
+    return exactTrap.test(part) && !embeddedInWord
+      ? <mark key={i}>{part}</mark>
+      : part
+  })
 }
 
 function sameAnswer(a: number[], b: number[]) {
