@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Attempt, Difficulty, Domain, Question } from './types'
+import type {
+  Attempt,
+  Difficulty,
+  Domain,
+  Question,
+  StudyFormat,
+  UiLanguage,
+} from './types'
 import {
   countByDomain,
+  countProfessorByDomain,
   createMock,
   nextPracticeQuestion,
   staticQuestions,
   topicCoverage,
 } from './data/bank'
 import { examEvidenceQuestions } from './data/examevidence'
+import { professorQuestions } from './data/professor'
 
 const domainMeta: Record<Domain, { label: string; sub: string }> = {
   wireless: { label: 'Wireless', sub: 'dB · Link budget · SNR · Shannon' },
@@ -15,17 +24,123 @@ const domainMeta: Record<Domain, { label: string; sub: string }> = {
   starlink: { label: 'Starlink', sub: 'EPFD · beams · geometry · ISLs' },
 }
 
-const difficultyMeta: Record<Difficulty, { label: string; note: string }> = {
-  core: { label: 'Core', note: '先保证基础不丢分' },
-  tricky: { label: 'Tricky', note: '加入 wording 与近似概念干扰项' },
-  brutal: { label: 'Brutal', note: '跨知识点 + 计算 + 限定词陷阱' },
+const copy = {
+  zh: {
+    subtitle: '不是背题。专练限定词、X/Y/Z 组合判断、跨概念推理和计算陷阱。',
+    coverage: '覆盖矩阵',
+    hideCoverage: '收起覆盖矩阵',
+    mock: '10 题模拟',
+    backPractice: '返回练习',
+    attempts: '次作答',
+    accuracy: '正确率',
+    pastImported: '道历史考试题型',
+    xyzImported: '道 Professor U XYZ 原型',
+    format: '题型',
+    professor: 'Professor U · X/Y/Z',
+    mixed: '混合',
+    standard: '普通 ABCD',
+    questionsStayEnglish: '题目、X/Y/Z 陈述和 A–E 选项始终保持英文。',
+    coverageTitle: '知识点覆盖矩阵',
+    coverageDesc: 'Mock 优先跨 topic；Brutal 会混入参数化新题，防止只背原题。',
+    evidenceTitle: '真实考试证据层',
+    evidenceDesc: '已把你刚发的 5 道 Professor U 题按原 X/Y/Z + A–E 结构加入。生成题会随机切换两套组合映射。',
+    selectAll: '多选题',
+    single: '单选题',
+    combo: 'X/Y/Z → A–E 组合题',
+    check: '检查答案',
+    skip: '跳过 / 新变式',
+    correct: '答对了。',
+    wrong: '这题没对。',
+    trap: '陷阱复盘',
+    next: '下一题',
+    finish: '完成模拟',
+    complete: '模拟完成',
+    anotherMock: '再生成一套',
+    returnPractice: '回到练习',
+    mockDesc: '目标不是记住 A/B/C/D/E，而是先独立判断 X、Y、Z，再把真值映射到本题的组合选项。',
+    wordingFirewall: 'WORDING FIREWALL',
+    wordingTitle: '看到这些词先降速',
+    wordingDesc: '先判断：必要还是可能？输入还是输出？可见还是可用？最后才映射 A–E。',
+    weakTopics: 'WEAK TOPICS',
+    weakTitle: '当前最需要补',
+    weakEmpty: '先做几道，系统会按 topic 记录正确率。',
+    why: 'PROFESSOR U MODE',
+    whyDesc: 'X/Y/Z 先逐条判真伪，再处理 A–E。生成器会故意换组合映射，防止你形成 “E 就是多个正确” 的条件反射。',
+    footer: '题目依据：你的 Wireless / Satellite Internet / Starlink 课件 + 已提供的 Test 题面。',
+    reset: '重置统计',
+    resetConfirm: '确定清空本浏览器里的全部练习统计吗？',
+    truthAudit: 'X/Y/Z 真值',
+    trueLabel: 'TRUE',
+    falseLabel: 'FALSE',
+    curated: '固定题',
+    generators: '生成变式',
+    language: '界面语言',
+  },
+  en: {
+    subtitle: 'Train qualifiers, X/Y/Z combination logic, cross-concept reasoning and calculation traps — not memorisation.',
+    coverage: 'Coverage guard',
+    hideCoverage: 'Hide coverage',
+    mock: '10-question mock',
+    backPractice: 'Back to practice',
+    attempts: 'attempts',
+    accuracy: 'accuracy',
+    pastImported: 'past-test patterns',
+    xyzImported: 'Professor U XYZ prototypes',
+    format: 'Format',
+    professor: 'Professor U · X/Y/Z',
+    mixed: 'Mixed',
+    standard: 'Standard ABCD',
+    questionsStayEnglish: 'Question text, X/Y/Z statements and A–E options always stay in English.',
+    coverageTitle: 'Concept coverage matrix',
+    coverageDesc: 'Mocks prefer topic diversity; Brutal mode mixes in parameterised variants so you cannot memorise surfaces.',
+    evidenceTitle: 'Past-test evidence layer',
+    evidenceDesc: 'The five photographed Professor U questions are now represented in their original X/Y/Z + A–E structure. Generated drills randomise the combination mapping.',
+    selectAll: 'SELECT ALL THAT APPLY',
+    single: 'SINGLE ANSWER',
+    combo: 'X/Y/Z → A–E COMBINATION',
+    check: 'Check answer',
+    skip: 'Skip / new variant',
+    correct: 'Correct.',
+    wrong: 'Not quite.',
+    trap: 'Trap audit',
+    next: 'Next question',
+    finish: 'Finish mock',
+    complete: 'MOCK COMPLETE',
+    anotherMock: 'Generate another mock',
+    returnPractice: 'Return to practice',
+    mockDesc: 'Do not memorise A/B/C/D/E. Judge X, Y and Z independently, then map the truth pattern to this question’s answer choices.',
+    wordingFirewall: 'WORDING FIREWALL',
+    wordingTitle: 'Slow down on these words',
+    wordingDesc: 'Decide necessity vs possibility, input vs output, visible vs usable — then decode A–E.',
+    weakTopics: 'WEAK TOPICS',
+    weakTitle: 'Current weak topics',
+    weakEmpty: 'Answer a few questions and topic-level accuracy will appear here.',
+    why: 'PROFESSOR U MODE',
+    whyDesc: 'Judge X/Y/Z first, then A–E. The generator deliberately swaps combination mappings so “E means many true” never becomes a shortcut.',
+    footer: 'Source basis: your Wireless / Satellite Internet / Starlink decks plus the test questions you provided.',
+    reset: 'Reset stats',
+    resetConfirm: 'Reset all local practice statistics?',
+    truthAudit: 'X/Y/Z truth audit',
+    trueLabel: 'TRUE',
+    falseLabel: 'FALSE',
+    curated: 'curated',
+    generators: 'generators',
+    language: 'UI language',
+  },
+} as const
+
+const difficultyMeta: Record<Difficulty, { label: string; zh: string; en: string }> = {
+  core: { label: 'Core', zh: '基础不丢分', en: 'Protect the basics' },
+  tricky: { label: 'Tricky', zh: '加入 wording 与近似概念', en: 'Wording + close distractors' },
+  brutal: { label: 'Brutal', zh: '跨知识点 + 限定词 + 计算', en: 'Cross-topic + qualifiers + maths' },
 }
 
 const trapRegex =
-  /(only|must|will|need to|necessarily|always|never|input|output|visible|usable|aggregate|underutilisation|underutilization|high utilisation|high utilization|all|exactly|guarantee(?:d)?|up to)/gi
+  /(only|must|will|need to|necessarily|always|never|input|output|visible|usable|aggregate|underutilisation|underutilization|high utilisation|high utilization|all|exactly|guarantee(?:d)?|up to|could|every|regardless)/gi
+const exactTrap =
+  /^(only|must|will|need to|necessarily|always|never|input|output|visible|usable|aggregate|underutilisation|underutilization|high utilisation|high utilization|all|exactly|guarantee(?:d)?|up to|could|every|regardless)$/i
 
-function highlightedPrompt(text: string) {
-  const exactTrap = /^(only|must|will|need to|necessarily|always|never|input|output|visible|usable|aggregate|underutilisation|underutilization|high utilisation|high utilization|all|exactly|guarantee(?:d)?|up to)$/i
+function highlightedText(text: string) {
   return text.split(trapRegex).map((part, i) =>
     exactTrap.test(part) ? <mark key={i}>{part}</mark> : part,
   )
@@ -45,12 +160,25 @@ function loadAttempts(): Attempt[] {
   }
 }
 
+function loadLanguage(): UiLanguage {
+  const value = localStorage.getItem('742-ui-language')
+  return value === 'en' ? 'en' : 'zh'
+}
+
+function loadStudyFormat(): StudyFormat {
+  const value = localStorage.getItem('742-study-format')
+  if (value === 'mixed' || value === 'standard' || value === 'professor') return value
+  return 'professor'
+}
+
 export default function App() {
+  const [language, setLanguage] = useState<UiLanguage>(loadLanguage)
+  const [studyFormat, setStudyFormat] = useState<StudyFormat>(loadStudyFormat)
   const [domain, setDomain] = useState<Domain>('wireless')
   const [difficulty, setDifficulty] = useState<Difficulty>('brutal')
   const [mode, setMode] = useState<'practice' | 'mock'>('practice')
   const [question, setQuestion] = useState<Question>(() =>
-    nextPracticeQuestion('wireless', 'brutal'),
+    nextPracticeQuestion('wireless', 'brutal', [], loadStudyFormat()),
   )
   const [selected, setSelected] = useState<number[]>([])
   const [revealed, setRevealed] = useState(false)
@@ -63,9 +191,19 @@ export default function App() {
   const [mockScore, setMockScore] = useState(0)
   const [mockFinished, setMockFinished] = useState(false)
 
+  const t = copy[language]
+
   useEffect(() => {
     localStorage.setItem('742-trap-attempts', JSON.stringify(attempts.slice(-1000)))
   }, [attempts])
+
+  useEffect(() => {
+    localStorage.setItem('742-ui-language', language)
+  }, [language])
+
+  useEffect(() => {
+    localStorage.setItem('742-study-format', studyFormat)
+  }, [studyFormat])
 
   const currentAttempts = attempts.filter((a) => a.domain === domain)
   const accuracy = currentAttempts.length
@@ -92,8 +230,12 @@ export default function App() {
     setLastCorrect(null)
   }
 
-  function loadPractice(d = domain, level = difficulty) {
-    const next = nextPracticeQuestion(d, level, recentIds)
+  function loadPractice(
+    d = domain,
+    level = difficulty,
+    format = studyFormat,
+  ) {
+    const next = nextPracticeQuestion(d, level, recentIds, format)
     setQuestion(next)
     setRecentIds((prev) => [...prev.slice(-7), next.id])
     resetAnswerState()
@@ -104,7 +246,7 @@ export default function App() {
     setMode('practice')
     setMockFinished(false)
     setMockQuestions([])
-    const next = nextPracticeQuestion(nextDomain, difficulty)
+    const next = nextPracticeQuestion(nextDomain, difficulty, [], studyFormat)
     setQuestion(next)
     setRecentIds([next.id])
     resetAnswerState()
@@ -113,11 +255,22 @@ export default function App() {
   function changeDifficulty(next: Difficulty) {
     setDifficulty(next)
     if (mode === 'practice') {
-      const q = nextPracticeQuestion(domain, next)
+      const q = nextPracticeQuestion(domain, next, [], studyFormat)
       setQuestion(q)
       setRecentIds([q.id])
       resetAnswerState()
     }
+  }
+
+  function changeStudyFormat(next: StudyFormat) {
+    setStudyFormat(next)
+    setMode('practice')
+    setMockFinished(false)
+    setMockQuestions([])
+    const q = nextPracticeQuestion(domain, difficulty, [], next)
+    setQuestion(q)
+    setRecentIds([q.id])
+    resetAnswerState()
   }
 
   function toggleOption(i: number) {
@@ -144,6 +297,7 @@ export default function App() {
         topic: question.topic,
         correct,
         timestamp: Date.now(),
+        format: question.format,
       },
     ])
     if (mode === 'mock' && correct) setMockScore((s) => s + 1)
@@ -159,6 +313,7 @@ export default function App() {
       setMockFinished(true)
       return
     }
+
     const nextIndex = mockIndex + 1
     setMockIndex(nextIndex)
     setQuestion(mockQuestions[nextIndex])
@@ -166,7 +321,7 @@ export default function App() {
   }
 
   function startMock() {
-    const qs = createMock(domain, difficulty, 10)
+    const qs = createMock(domain, difficulty, 10, studyFormat)
     setMode('mock')
     setMockQuestions(qs)
     setMockIndex(0)
@@ -185,7 +340,16 @@ export default function App() {
 
   const domainStatic = staticQuestions.filter((q) => q.domain === domain)
   const topicCounts = new Map<string, number>()
-  for (const q of domainStatic) topicCounts.set(q.topic, (topicCounts.get(q.topic) || 0) + 1)
+  for (const q of domainStatic) {
+    topicCounts.set(q.topic, (topicCounts.get(q.topic) || 0) + 1)
+  }
+
+  const questionKind =
+    question.format === 'professor-xyz'
+      ? t.combo
+      : question.type === 'multi'
+        ? t.selectAll
+        : t.single
 
   return (
     <div className="app-shell">
@@ -193,18 +357,31 @@ export default function App() {
         <div>
           <div className="eyebrow">COMPSCI 742 · EXAM TRAINER</div>
           <h1>742 Trap Lab</h1>
-          <p className="subtitle">
-            不是背题。专练 <strong>限定词、跨概念组合、单位、因果方向</strong>。
-          </p>
+          <p className="subtitle">{t.subtitle}</p>
         </div>
+
         <div className="header-actions">
+          <div className="language-switch" aria-label={t.language}>
+            <button
+              className={language === 'zh' ? 'active' : ''}
+              onClick={() => setLanguage('zh')}
+            >
+              中文
+            </button>
+            <button
+              className={language === 'en' ? 'active' : ''}
+              onClick={() => setLanguage('en')}
+            >
+              EN
+            </button>
+          </div>
           <button className="ghost" onClick={() => setShowCoverage((v) => !v)}>
-            {showCoverage ? 'Hide coverage' : 'Coverage guard'}
+            {showCoverage ? t.hideCoverage : t.coverage}
           </button>
           {mode === 'practice' ? (
-            <button className="primary small" onClick={startMock}>10-question mock</button>
+            <button className="primary small" onClick={startMock}>{t.mock}</button>
           ) : (
-            <button className="ghost" onClick={backToPractice}>Back to practice</button>
+            <button className="ghost" onClick={backToPractice}>{t.backPractice}</button>
           )}
         </div>
       </header>
@@ -218,9 +395,33 @@ export default function App() {
           >
             <span>{domainMeta[d].label}</span>
             <small>{domainMeta[d].sub}</small>
-            <em>{countByDomain(d)} curated + generators</em>
+            <em>
+              {countByDomain(d)} {t.curated} · {countProfessorByDomain(d)} XYZ · ∞ {t.generators}
+            </em>
           </button>
         ))}
+      </section>
+
+      <section className="format-row">
+        <div className="format-label">
+          <span className="eyebrow">{t.format}</span>
+          <small>{t.questionsStayEnglish}</small>
+        </div>
+        <div className="segmented format-segmented">
+          {([
+            ['professor', t.professor],
+            ['mixed', t.mixed],
+            ['standard', t.standard],
+          ] as [StudyFormat, string][]).map(([value, label]) => (
+            <button
+              key={value}
+              className={studyFormat === value ? 'active' : ''}
+              onClick={() => changeStudyFormat(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="control-row">
@@ -230,16 +431,17 @@ export default function App() {
               key={d}
               className={difficulty === d ? 'active' : ''}
               onClick={() => changeDifficulty(d)}
-              title={difficultyMeta[d].note}
+              title={language === 'zh' ? difficultyMeta[d].zh : difficultyMeta[d].en}
             >
               {difficultyMeta[d].label}
             </button>
           ))}
         </div>
         <div className="stats-strip">
-          <span><b>{currentAttempts.length}</b> attempts</span>
-          <span><b>{accuracy}%</b> accuracy</span>
-          <span><b>{examEvidenceQuestions.length}</b> past-test questions imported</span>
+          <span><b>{currentAttempts.length}</b> {t.attempts}</span>
+          <span><b>{accuracy}%</b> {t.accuracy}</span>
+          <span><b>{examEvidenceQuestions.length}</b> {t.pastImported}</span>
+          <span><b>{professorQuestions.length}</b> {t.xyzImported}</span>
         </div>
       </section>
 
@@ -248,11 +450,9 @@ export default function App() {
           <div className="coverage-head">
             <div>
               <span className="eyebrow">COVERAGE GUARD</span>
-              <h2>{domainMeta[domain].label} concept matrix</h2>
+              <h2>{domainMeta[domain].label} · {t.coverageTitle}</h2>
             </div>
-            <p>
-              每个 mock 优先跨 topic 抽题；Brutal 还会混入参数化新题，避免只记住题面。
-            </p>
+            <p>{t.coverageDesc}</p>
           </div>
           <div className="coverage-grid">
             {topicCoverage[domain].map((topic) => (
@@ -263,18 +463,18 @@ export default function App() {
             ))}
           </div>
           <div className="evidence-note">
-            <b>Past-test evidence layer:</b> 已把能可靠重建的 Test 2 题型单独放进 evidence layer。
-            Test 1 那些缺少 X/Y/Z 原句的版本不会硬猜；你补截图后再按原措辞扩成同型变式题。
+            <b>{t.evidenceTitle}:</b> {t.evidenceDesc}
           </div>
         </section>
       )}
 
       <main className="study-layout">
-        <section className="question-card">
+        <section className={question.format === 'professor-xyz' ? 'question-card professor-card' : 'question-card'}>
           <div className="question-meta">
             <span className={'difficulty ' + question.difficulty}>{question.difficulty}</span>
             <span>{question.topic}</span>
-            <span>{question.type === 'multi' ? 'SELECT ALL THAT APPLY' : 'SINGLE ANSWER'}</span>
+            <span>{questionKind}</span>
+            {question.format === 'professor-xyz' && <span className="prof-badge">PROFESSOR U</span>}
             {mode === 'mock' && (
               <span className="mock-counter">Q {mockIndex + 1}/{mockQuestions.length}</span>
             )}
@@ -282,20 +482,37 @@ export default function App() {
 
           {mockFinished ? (
             <div className="mock-finished">
-              <span className="eyebrow">MOCK COMPLETE</span>
+              <span className="eyebrow">{t.complete}</span>
               <h2>{mockScore} / {mockQuestions.length}</h2>
-              <p>
-                目标不是把同一套题刷熟，而是让 unfamiliar wording 也能稳定拆成
-                “已知条件 → 真正问法 → 约束 → 计算/因果”。
-              </p>
+              <p>{t.mockDesc}</p>
               <div className="mock-actions">
-                <button className="primary" onClick={startMock}>Generate another mock</button>
-                <button className="ghost" onClick={backToPractice}>Return to practice</button>
+                <button className="primary" onClick={startMock}>{t.anotherMock}</button>
+                <button className="ghost" onClick={backToPractice}>{t.returnPractice}</button>
               </div>
             </div>
           ) : (
             <>
-              <h2 className="prompt">{highlightedPrompt(question.prompt)}</h2>
+              {question.context && (
+                <div className="question-context">{highlightedText(question.context)}</div>
+              )}
+
+              <h2 className="prompt">{highlightedText(question.prompt)}</h2>
+
+              {question.statements?.length ? (
+                <div className="xyz-statements">
+                  {question.statements.map((statement, i) => (
+                    <div className="xyz-statement" key={statement}>
+                      <span className="xyz-letter">{['X', 'Y', 'Z'][i]}</span>
+                      <span className="xyz-text">{highlightedText(statement)}</span>
+                      {revealed && question.statementTruth && (
+                        <span className={question.statementTruth[i] ? 'truth true' : 'truth false'}>
+                          {question.statementTruth[i] ? t.trueLabel : t.falseLabel}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
 
               <div className="options">
                 {question.options.map((option, i) => {
@@ -310,6 +527,7 @@ export default function App() {
                     : isSelected
                       ? 'selected'
                       : ''
+
                   return (
                     <button
                       key={option}
@@ -331,29 +549,47 @@ export default function App() {
                     disabled={!selected.length}
                     onClick={submit}
                   >
-                    Check answer
+                    {t.check}
                   </button>
-                  <button className="ghost" onClick={() => loadPractice()} disabled={mode === 'mock'}>
-                    Skip / new variant
+                  <button
+                    className="ghost"
+                    onClick={() => loadPractice()}
+                    disabled={mode === 'mock'}
+                  >
+                    {t.skip}
                   </button>
                 </div>
               ) : (
                 <div className={lastCorrect ? 'result correct-result' : 'result wrong-result'}>
                   <div className="result-head">
-                    <strong>{lastCorrect ? 'Correct.' : 'Not quite.'}</strong>
+                    <strong>{lastCorrect ? t.correct : t.wrong}</strong>
                     <span>{question.source}</span>
                   </div>
+
+                  {question.statementTruth && (
+                    <div className="truth-summary">
+                      <b>{t.truthAudit}</b>
+                      <span>
+                        X={question.statementTruth[0] ? 'TRUE' : 'FALSE'} ·
+                        Y={question.statementTruth[1] ? 'TRUE' : 'FALSE'} ·
+                        Z={question.statementTruth[2] ? 'TRUE' : 'FALSE'}
+                      </span>
+                    </div>
+                  )}
+
                   <p>{question.explanation}</p>
+
                   {question.trap && (
                     <div className="trap-box">
-                      <b>Trap audit</b>
+                      <b>{t.trap}</b>
                       <span>{question.trap}</span>
                     </div>
                   )}
+
                   <button className="primary" onClick={next}>
                     {mode === 'mock' && mockIndex + 1 >= mockQuestions.length
-                      ? 'Finish mock'
-                      : 'Next question'}
+                      ? t.finish
+                      : t.next}
                   </button>
                 </div>
               )}
@@ -363,21 +599,31 @@ export default function App() {
 
         <aside className="side-panel">
           <section className="panel-block">
-            <span className="eyebrow">WORDING FIREWALL</span>
-            <h3>看到这些词先降速</h3>
+            <span className="eyebrow">{t.wordingFirewall}</span>
+            <h3>{t.wordingTitle}</h3>
             <div className="trap-chips">
-              {['only', 'must', 'will', 'need to', 'input', 'output', 'visible ≠ usable', 'aggregate', 'underutilisation', 'up to'].map((x) => (
-                <span key={x}>{x}</span>
-              ))}
+              {[
+                'only',
+                'must',
+                'will',
+                'need to',
+                'could',
+                'all',
+                'none',
+                'input',
+                'output',
+                'visible ≠ usable',
+                'aggregate',
+                'underutilisation',
+                'up to',
+              ].map((x) => <span key={x}>{x}</span>)}
             </div>
-            <p className="muted">
-              先判断题目问的是“可能 / 必要 / 充分 / 结果 / 输入 / 输出”，再调用知识点。
-            </p>
+            <p className="muted">{t.wordingDesc}</p>
           </section>
 
           <section className="panel-block">
-            <span className="eyebrow">WEAK TOPICS</span>
-            <h3>当前最需要补</h3>
+            <span className="eyebrow">{t.weakTopics}</span>
+            <h3>{t.weakTitle}</h3>
             {weakTopics.length ? (
               <div className="weak-list">
                 {weakTopics.map(([topic, v]) => (
@@ -388,29 +634,31 @@ export default function App() {
                 ))}
               </div>
             ) : (
-              <p className="muted">先做几道，系统会按 topic 记录正确率。</p>
+              <p className="muted">{t.weakEmpty}</p>
             )}
           </section>
 
-          <section className="panel-block compact">
-            <span className="eyebrow">WHY THIS BANK IS DIFFERENT</span>
-            <p>
-              Static questions cover slide concepts. Generated questions change numbers and combine
-              constraints, so memorising option positions does not work.
-            </p>
+          <section className="panel-block compact professor-explainer">
+            <span className="eyebrow">{t.why}</span>
+            <p>{t.whyDesc}</p>
+            <div className="mapping-mini">
+              <code>judge X → judge Y → judge Z</code>
+              <span>↓</span>
+              <code>then decode A / B / C / D / E</code>
+            </div>
           </section>
         </aside>
       </main>
 
       <footer>
-        <span>Source basis: your Wireless / Satellite Internet / Starlink lecture decks.</span>
+        <span>{t.footer}</span>
         <button
           className="text-button"
           onClick={() => {
-            if (window.confirm('Reset all local practice statistics?')) setAttempts([])
+            if (window.confirm(t.resetConfirm)) setAttempts([])
           }}
         >
-          Reset stats
+          {t.reset}
         </button>
       </footer>
     </div>
