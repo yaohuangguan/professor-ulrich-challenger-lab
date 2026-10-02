@@ -1,32 +1,65 @@
-# React + TypeScript + Vite
+# 742 Trap Lab
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A focused COMPSCI 742 exam trainer for three domains:
 
-Currently, two official plugins are available:
+- **Wireless** — dB/dBm/dBW, antennas, Friis/path loss, thermal noise, interference/fading, Shannon-Hartley, QAM/SNR, link budgets and fade margin.
+- **Satellite Internet** — GEO/MEO/LEO service models, satellite bands, pointing/link budgets, BDP, TCP queue oscillation, load regimes and diagnosis.
+- **Starlink** — Dishy/phased arrays, H3 cells, beams and reuse, visible vs usable satellites, GEO arc protection, EPFD, pre-/post-late-2025 cell capacity, user-density management, laser ISLs, routing and CDN implications.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Production: https://compsci742-trap-lab.pages.dev/
 
-## React Compiler
+## Training design
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The goal is transfer, not memorisation.
 
-## Expanding the Oxlint configuration
+- Curated questions cover lecture concepts.
+- Parameterised generators change numbers and combine constraints.
+- **Brutal** difficulty deliberately uses wording traps such as `only`, `must`, `will`, `need to`, `visible`, `usable`, `aggregate`, `high utilisation` and `underutilisation`.
+- 10-question mock tests prefer topic diversity.
+- Attempts and weak-topic accuracy are stored locally in the browser.
+- A separate **past-test evidence layer** holds only question patterns that can be reconstructed with confidence. Missing original wording is never invented.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Source structure
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+src/
+  app.tsx
+  data/
+    wireless.ts
+    satellite.ts
+    starlink.ts
+    generators.ts
+    examevidence.ts
+    bank.ts
+  styles.css
+  types.ts
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The app contains self-authored training questions derived from the supplied lecture material; it does not ship the original PPT files.
+
+## Add exact Test 1 / Test 2 questions
+
+Put faithfully transcribed questions in `src/data/examevidence.ts`. Preserve:
+
+1. exact qualifiers (`only`, `must`, `will`, `need to`);
+2. whether the prompt asks for input, output, consequence, necessity, or sufficiency;
+3. all X/Y/Z statements and combination-answer mapping;
+4. the user's selected answer and official/verified answer when available;
+5. a short explanation of why each tempting distractor fails.
+
+Then add one or more generated variants to `src/data/generators.ts` if the pattern is reusable.
+
+## Development
+
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+Deployment is currently manual via Cloudflare Pages:
+
+```bash
+npm run build
+wrangler pages deploy dist --project-name compsci742-trap-lab --branch main
+```
