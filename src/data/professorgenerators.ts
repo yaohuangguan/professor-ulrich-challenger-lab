@@ -37,7 +37,7 @@ function xyzQuestion(
     statementTruth: truth,
     options: c.options,
     answers: [c.answer],
-    tags: [...base.tags, 'Professor U', 'XYZ', 'generated', c.scheme],
+    tags: [...base.tags, 'XYZ', 'generated', c.scheme],
   }
 }
 
@@ -100,7 +100,7 @@ function wirelessWordingXYZ(): Question {
     ],
     explanation: `Only Y is true. A ${delta} dB improvement is needed, but path loss is not the only term that can provide it, so X's “need to” is false. Raising TX power by ${delta} dB is one sufficient method. TX power does not alter the physical distance/path loss.`,
     trap: 'NEED TO = necessary. COULD = one sufficient method. Those are not interchangeable.',
-    source: 'Generated Professor-U wording drill from link-budget rules',
+    source: 'Generated XYZ wording drill from link-budget rules',
     tags: ['need to', 'could', 'wording'],
   }, truth, 'prof-gen-w-wording')
 }
@@ -306,7 +306,7 @@ function tcpSlowStartXYZ(): Question {
       'After loss, a multiplicative reduction of cwnd is part of the basic AIMD idea.',
     ],
     explanation: 'X and Z are true. AIMD means additive increase and multiplicative decrease, not the reverse.',
-    trap: 'Professor-style wording often flips one word in a familiar acronym expansion.',
+    trap: 'XYZ-style wording often flips one word in a familiar acronym expansion.',
     source: 'Generated from TCP Slow Start/AIMD recap',
     tags: ['TCP', 'Slow Start', 'AIMD'],
   }, truth, 'prof-gen-tcp-slowstart')

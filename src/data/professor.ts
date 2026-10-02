@@ -34,9 +34,9 @@ export const professorQuestions: Question[] = [
     options: pairOptions,
     answers: [4],
     explanation: 'X is false: an observer can see many apparent tracks, not only a vertical rise and overhead pass. Y is false in the course terminology: an orbital plane is used for satellites sharing the same orbit/inclination. Z is true: multiple satellites can occupy the same orbit. With only one true statement, option E is the correct combination bucket.',
-    trap: 'Professor U sometimes makes E mean “none or only one”, rather than “all/two”. Read the option mapping every time.',
+    trap: 'XYZ sometimes makes E mean “none or only one”, rather than “all/two”. Read the option mapping every time.',
     source: 'Past Test 2 — exact photographed question 1',
-    tags: ['past test', 'Professor U', 'XYZ', 'orbits', 'combination mapping']
+    tags: ['past test', 'XYZ', 'XYZ', 'orbits', 'combination mapping']
   },
   {
     id: 'prof-test2-q2-queue',
@@ -57,7 +57,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X is false because excessive fill/drain oscillation includes periods where the queue empties and the bottleneck is underutilised. Y is false because TCP behaviour does not reduce the physical bandwidth-delay product of the path. Z is false: an ACK cannot acknowledge data before that data has been sent and received. Therefore none are true.',
     trap: 'Three statements can all sound technical while all being false. Do not force one of X/Y/Z to be true.',
     source: 'Past Test 2 — exact photographed question 2',
-    tags: ['past test', 'Professor U', 'XYZ', 'queue oscillation', 'BDP', 'ACK']
+    tags: ['past test', 'XYZ', 'XYZ', 'queue oscillation', 'BDP', 'ACK']
   },
   {
     id: 'prof-test2-q3-link',
@@ -79,7 +79,7 @@ export const professorQuestions: Question[] = [
     explanation: 'Y is true: 23 dBm transmitter output minus 2 dB TX feedline loss gives 21 dBm into the transmit antenna. The received level at 12 km is 23 - 2 + 29 - 130 + 16 - 3 = -67 dBm, while the minimum is -95 + 25 = -70 dBm, so fade margin is 3 dB. Tripling distance adds about 9.5 dB free-space loss, so Z is false. X does not match the complete link gain/loss calculation.',
     trap: 'The box gives many numbers so it is easy to calculate the wrong quantity. Identify exactly where each signal level is measured.',
     source: 'Past Test 2 — exact photographed question 3',
-    tags: ['past test', 'Professor U', 'XYZ', 'link budget', 'Friis', 'measurement point']
+    tags: ['past test', 'XYZ', 'XYZ', 'link budget', 'Friis', 'measurement point']
   },
   {
     id: 'prof-test2-q4-wording',
@@ -99,9 +99,9 @@ export const professorQuestions: Question[] = [
     options: singletonOptions,
     answers: [1],
     explanation: 'X is false because changing path loss is one possible route, not a necessary one. Y is true: increasing TX power by 4 dB moves fade margin from 3 to 7 dB. Z is false: changing TX power does not change the propagation path loss.',
-    trap: '“Need to” means necessary. “Could” means one sufficient method. Professor U tests that distinction directly.',
+    trap: '“Need to” means necessary. “Could” means one sufficient method. XYZ tests that distinction directly.',
     source: 'Past Test 2 — exact photographed question 4',
-    tags: ['past test', 'Professor U', 'XYZ', 'need to', 'could', 'path loss']
+    tags: ['past test', 'XYZ', 'XYZ', 'need to', 'could', 'path loss']
   },
   {
     id: 'prof-test2-q5-overload',
@@ -122,7 +122,7 @@ export const professorQuestions: Question[] = [
     explanation: 'The observations fit the overload regime: the buffer can stay full, very small flows can still complete, and large flows may time out. The high utilisation pattern is not the classic fill/drain underutilising queue-oscillation pattern. Reducing the physical link data rate would make the overloaded bottleneck worse, not better.',
     trap: 'High packet loss does not automatically mean queue oscillation. The utilisation clue separates overload from fill/drain behaviour.',
     source: 'Past Test 2 — exact photographed question 5',
-    tags: ['past test', 'Professor U', 'XYZ', 'overload', 'high utilisation']
+    tags: ['past test', 'XYZ', 'XYZ', 'overload', 'high utilisation']
   },
   {
     id: 'prof-wireless-qam',
@@ -143,7 +143,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X and Z are true. 64QAM has 6 bits/symbol, so the course approximation gives about 18 dB. Higher-order QAM needs more, not less, SNR. Thermal noise increases with receiver bandwidth.',
     trap: 'This mixes modulation and receiver-noise concepts so you must judge each statement independently.',
     source: 'Wireless slides — QAM/SNR + thermal noise',
-    tags: ['Professor U', 'XYZ', '64QAM', 'noise']
+    tags: ['XYZ', 'XYZ', '64QAM', 'noise']
   },
   {
     id: 'prof-wireless-frequency',
@@ -164,7 +164,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X and Y are true. Doubling frequency adds about 6 dB path loss, but each fixed-size dish also gains about 6 dB, so the two antenna gains more than compensate and received power rises by about 6 dB overall.',
     trap: '“Higher frequency = more path loss” is true but incomplete when physical antenna size is fixed.',
     source: 'Wireless slides — aperture, gain and path loss',
-    tags: ['Professor U', 'XYZ', 'frequency', 'dish gain']
+    tags: ['XYZ', 'XYZ', 'frequency', 'dish gain']
   },
   {
     id: 'prof-satellite-load',
@@ -185,7 +185,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X and Y describe the high-load queue-oscillation regime. Z instead describes overload, where the queue can remain permanently full.',
     trap: 'High load and overload are separate regimes in the lecture deck.',
     source: 'Satellite Internet slides — load regimes',
-    tags: ['Professor U', 'XYZ', 'high load', 'overload']
+    tags: ['XYZ', 'XYZ', 'high load', 'overload']
   },
   {
     id: 'prof-satellite-shortflow',
@@ -206,7 +206,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X and Z are true. For small transfers, one RTT can dominate total time, so halving the serialization rate may change total time only slightly. Large transfers are much more rate-sensitive.',
     trap: 'The word “always” turns a statement that is sometimes intuitive into a false universal claim.',
     source: 'Satellite Internet slides — flow size and RTT',
-    tags: ['Professor U', 'XYZ', 'RTT', 'flow size']
+    tags: ['XYZ', 'XYZ', 'RTT', 'flow size']
   },
   {
     id: 'prof-starlink-visible',
@@ -227,7 +227,7 @@ export const professorQuestions: Question[] = [
     explanation: 'Y and Z are true. Clearing the elevation threshold makes a satellite visible in the course model, but it can still be unusable because of resource, spectrum/EPFD, or GEO-arc constraints.',
     trap: 'VISIBLE is not the same as USABLE.',
     source: 'Starlink slides — visible vs usable satellites',
-    tags: ['Professor U', 'XYZ', 'visible', 'usable']
+    tags: ['XYZ', 'XYZ', 'visible', 'usable']
   },
   {
     id: 'prof-starlink-epfd',
@@ -248,7 +248,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X and Z are true. The aggregate EPFD limit remains, so per-beam power must fall as more beams share the allowance. The slide calculation gives 8 × 3 bits/s/Hz × 2 GHz = 48 Gb/s.',
     trap: '“Up to eight beams” is not “eight times the old capacity”.',
     source: 'Starlink slides — EPFD and late-2025 capacity',
-    tags: ['Professor U', 'XYZ', 'EPFD', '8 beams', '48 Gb/s']
+    tags: ['XYZ', 'XYZ', 'EPFD', '8 beams', '48 Gb/s']
   },
   {
     id: 'prof-starlink-routing',
@@ -269,7 +269,7 @@ export const professorQuestions: Question[] = [
     explanation: 'X and Z are true. The lecture explicitly says traffic emerged in Auckland and that the route shows cross-plane routing. It also says this is clearly not simple shortest-path routing in space.',
     trap: 'Observed geography does not justify assuming a shortest-path routing algorithm.',
     source: 'Starlink slides — Tarawa traceroute',
-    tags: ['Professor U', 'XYZ', 'routing', 'ISL']
+    tags: ['XYZ', 'XYZ', 'routing', 'ISL']
   }
 ]
 
@@ -297,7 +297,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. SYN consumes one sequence number for handshake acknowledgment, so each side acknowledges the other ISN + 1. The third packet is ACK-only with SYN = 0.',
     trap: 'Do not carry the SYN flag into the third handshake packet just because the sequence space advanced.',
     source: 'TCP Fundamentals + TCP quick re-cap — connection setup',
-    tags: ['Professor U', 'XYZ', 'TCP', 'handshake']
+    tags: ['XYZ', 'XYZ', 'TCP', 'handshake']
   },
   {
     id: 'prof-tcp-seq-ack',
@@ -319,7 +319,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. TCP ACK is the next expected byte. ACK 5800 confirms all bytes through 5799. Therefore Z is false.',
     trap: 'ACK is “next needed”, not “last received”.',
     source: 'TCP Fundamentals — byte-level sequencing',
-    tags: ['Professor U', 'XYZ', 'TCP', 'SEQ', 'ACK']
+    tags: ['XYZ', 'XYZ', 'TCP', 'SEQ', 'ACK']
   },
   {
     id: 'prof-tcp-flow-cwnd',
@@ -341,7 +341,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. Effective transmission is constrained by the smaller of advertised window and cwnd. Advertised window is receiver flow control; cwnd is a sender-side congestion-control variable.',
     trap: 'Advertised window and cwnd both limit in-flight data, but they protect different things and live on different sides.',
     source: 'TCP Fundamentals — flow control and congestion window',
-    tags: ['Professor U', 'XYZ', 'TCP', 'cwnd', 'advertised window']
+    tags: ['XYZ', 'XYZ', 'TCP', 'cwnd', 'advertised window']
   },
   {
     id: 'prof-tcp-dupacks',
@@ -362,7 +362,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. Duplicate ACKs point to a gap: later data may have arrived, but the cumulative ACK cannot move past the missing byte.',
     trap: 'Receiving later bytes does not advance the cumulative ACK across a gap.',
     source: 'TCP Fundamentals + TCP quick re-cap — duplicate ACKs',
-    tags: ['Professor U', 'XYZ', 'TCP', 'duplicate ACK', 'fast retransmit']
+    tags: ['XYZ', 'XYZ', 'TCP', 'duplicate ACK', 'fast retransmit']
   },
   {
     id: 'prof-tcp-slowstart',
@@ -383,7 +383,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. Slow Start grows exponentially at roughly a doubling per RTT; congestion avoidance uses additive growth. Loss triggers multiplicative decrease, not increase.',
     trap: 'The words additive/multiplicative and increase/decrease are easy to swap under time pressure.',
     source: 'TCP quick re-cap — Slow Start and AIMD',
-    tags: ['Professor U', 'XYZ', 'TCP', 'slow start', 'AIMD']
+    tags: ['XYZ', 'XYZ', 'TCP', 'slow start', 'AIMD']
   },
   {
     id: 'prof-tcp-flavours',
@@ -404,7 +404,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. The recap also says different TCP flavours are usually interoperable, so Z is false.',
     trap: 'Different congestion-control algorithms do not imply incompatible TCP wire protocols.',
     source: 'TCP quick re-cap — TCP flavours',
-    tags: ['Professor U', 'XYZ', 'TCP', 'Hybla', 'CUBIC']
+    tags: ['XYZ', 'XYZ', 'TCP', 'Hybla', 'CUBIC']
   }
 )
 
@@ -430,7 +430,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. TCP maintains an independent byte stream in each direction. Alice’s sequence space advances from 1001 by 600 bytes to 1601; Bob’s advances from 5001 by 400 bytes to 5401. Bob sending data does not reset Alice’s sequence space.',
     trap: 'TCP is bi-directional, but the two directions have separate sequence spaces.',
     source: 'TCP Fundamentals + TCP quick re-cap — handshake and mid-stream sequencing',
-    tags: ['Professor U', 'XYZ', 'TCP', 'sequence space', 'bidirectional']
+    tags: ['XYZ', 'XYZ', 'TCP', 'sequence space', 'bidirectional']
   },
   {
     id: 'prof-tcp-loss-chain',
@@ -452,7 +452,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. The cumulative ACK identifies the next missing byte. Later out-of-order data does not move the cumulative ACK across the gap, so repeated ACK 1501 can signal the loss and support fast retransmission.',
     trap: 'Physical arrival of later bytes is not enough to advance a cumulative ACK past a missing gap.',
     source: 'TCP Fundamentals + TCP quick re-cap — out-of-order data and duplicate ACKs',
-    tags: ['Professor U', 'XYZ', 'TCP', 'duplicate ACK', 'cumulative ACK']
+    tags: ['XYZ', 'XYZ', 'TCP', 'duplicate ACK', 'cumulative ACK']
   },
   {
     id: 'prof-tcp-three-limits',
@@ -474,7 +474,7 @@ professorQuestions.push(
     explanation: 'X and Y are true. The recap lists data available, the other side’s advertised window and the sender’s congestion window as limits. The smallest applicable value wins: first 16 KB, then 64 KB if cwnd rises to 96 KB.',
     trap: 'Application demand is only one constraint; it does not override flow control or congestion control.',
     source: 'TCP quick re-cap — sender transmit window',
-    tags: ['Professor U', 'XYZ', 'TCP', 'transmission window', 'cwnd', 'advertised window']
+    tags: ['XYZ', 'XYZ', 'TCP', 'transmission window', 'cwnd', 'advertised window']
   },
   {
     id: 'prof-tcp-bdp-cwnd',
@@ -496,6 +496,96 @@ professorQuestions.push(
     explanation: 'X and Y are true. BDP = 100 Mb/s × 0.5 s = 50 Mbit = 6.25 MB. With cwnd only 16 KB, cwnd remains the tighter constraint, so enlarging an already-large advertised window does not remove the congestion-window limit.',
     trap: 'A large receiver window does not cancel a small sender congestion window.',
     source: 'TCP quick re-cap — cwnd goal and bandwidth-delay product',
-    tags: ['Professor U', 'XYZ', 'TCP', 'BDP', 'cwnd']
+    tags: ['XYZ', 'XYZ', 'TCP', 'BDP', 'cwnd']
+  }
+)
+
+
+professorQuestions.push(
+  {
+    id: 'xyz-wireless-plausible-nonsense',
+    domain: 'wireless',
+    topic: 'Link budgets',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A link has 3 dB fade margin. The target is 7 dB. All other assumptions remain unchanged unless explicitly stated.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'Increasing transmit power by 4 dB would increase the fade margin by 4 dB.',
+      'Because 64QAM carries 6 bits per symbol, increasing transmit power by 4 dB will reduce the free-space path loss by 4 dB.',
+      'Reducing path loss by 4 dB is one possible way, but it is not the only possible way, to reach the target fade margin.'
+    ],
+    statementTruth: [true, false, true],
+    options: pairOptions,
+    answers: [1],
+    explanation: 'X and Z are true. Y is deliberately technical-sounding nonsense: the 64QAM fact does not create a causal relationship between transmit power and free-space path loss. Transmit power changes received power; it does not change the physical propagation loss.',
+    trap: 'A statement can contain correct vocabulary and still be logically meaningless. Check the causal link, not just the nouns.',
+    source: 'XYZ logic drill — plausible technical nonsense',
+    tags: ['XYZ', 'plausible nonsense', 'causality', 'link budget']
+  },
+  {
+    id: 'xyz-satellite-plausible-nonsense',
+    domain: 'satellite',
+    topic: 'TCP queue oscillation',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A MEO/GEO link has long RTT and is showing queue oscillation under high load.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'Long RTT delays congestion feedback to remote TCP senders.',
+      'Because the bandwidth-delay product is large, the satellite gateway queue must therefore have lower thermal noise.',
+      'Delayed feedback can allow the bottleneck queue to continue filling even after packet loss has begun.'
+    ],
+    statementTruth: [true, false, true],
+    options: pairOptions,
+    answers: [1],
+    explanation: 'X and Z are true. Y mixes two unrelated concepts: bandwidth-delay product describes data in flight, while thermal noise is an RF receiver property. A large BDP does not imply a lower noise floor.',
+    trap: 'Watch for category errors: a network-layer quantity may be paired with an RF term to make a sentence sound sophisticated.',
+    source: 'XYZ logic drill — plausible technical nonsense',
+    tags: ['XYZ', 'plausible nonsense', 'BDP', 'queue oscillation']
+  },
+  {
+    id: 'xyz-starlink-plausible-nonsense',
+    domain: 'starlink',
+    topic: 'Visible vs usable satellites',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'A Starlink satellite can be geometrically visible but still unusable because of beam, spectrum/EPFD, or GEO-arc constraints.',
+      'Because EPFD is an aggregate power-density constraint, any satellite above 25° elevation is automatically usable.',
+      'The visibility threshold and the usability constraints answer different questions.'
+    ],
+    statementTruth: [true, false, true],
+    options: pairOptions,
+    answers: [1],
+    explanation: 'X and Z are true. Y starts with a real EPFD concept and then jumps to an unrelated conclusion. EPFD does not turn geometric visibility into guaranteed usability.',
+    trap: 'A true premise does not rescue an unrelated conclusion.',
+    source: 'XYZ logic drill — plausible technical nonsense',
+    tags: ['XYZ', 'plausible nonsense', 'EPFD', 'visible', 'usable']
+  },
+  {
+    id: 'xyz-tcp-plausible-nonsense',
+    domain: 'tcp',
+    topic: 'Flow vs congestion control',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'The advertised window protects the receiver from being overrun.',
+      'Because ACK numbers identify the next expected byte, increasing cwnd necessarily reduces the receiver’s advertised window.',
+      'cwnd and advertised window can both limit how much unacknowledged data is in flight, but they represent different constraints.'
+    ],
+    statementTruth: [true, false, true],
+    options: pairOptions,
+    answers: [1],
+    explanation: 'X and Z are true. Y chains together two valid TCP terms with a false causal claim. ACK semantics, cwnd, and the receiver-advertised window are related to TCP operation but one does not mechanically force the other to shrink.',
+    trap: 'Do not accept a sentence merely because every noun belongs to the same chapter.',
+    source: 'XYZ logic drill — plausible technical nonsense',
+    tags: ['XYZ', 'plausible nonsense', 'cwnd', 'advertised window']
   }
 )
