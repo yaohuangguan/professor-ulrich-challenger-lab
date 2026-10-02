@@ -1,4 +1,4 @@
-export type Domain = 'wireless' | 'satellite' | 'starlink'
+export type Domain = 'wireless' | 'satellite' | 'starlink' | 'tcp'
 export type Difficulty = 'core' | 'tricky' | 'brutal'
 export type QuestionType = 'single' | 'multi'
 export type QuestionFormat = 'standard' | 'professor-xyz'

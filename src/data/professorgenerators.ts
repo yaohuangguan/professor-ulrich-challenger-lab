@@ -225,11 +225,118 @@ function starlinkIslXYZ(): Question {
   }, truth, 'prof-gen-st-isl')
 }
 
+function tcpHandshakeXYZ(): Question {
+  const clientIsn = pick([1000, 2400, 7000])
+  const serverIsn = pick([5000, 9000, 15000])
+  const truth = [true, true, false]
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Three-way handshake',
+    difficulty: 'brutal',
+    context: `A TCP client chooses ISN ${clientIsn}; the server chooses ISN ${serverIsn}.`,
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      `The server SYN-ACK should use ACK number ${clientIsn + 1}.`,
+      `The client’s third handshake packet should use ACK number ${serverIsn + 1}.`,
+      'The third handshake packet should still have SYN = 1.',
+    ],
+    explanation: 'X and Y are true. Each SYN consumes one sequence number for handshake acknowledgment. The third packet completes the handshake with ACK = 1 and SYN = 0.',
+    trap: 'Judge flags and sequence-space effects separately.',
+    source: 'Generated from TCP handshake material',
+    tags: ['TCP', 'handshake', 'ISN'],
+  }, truth, 'prof-gen-tcp-handshake')
+}
+
+function tcpAckXYZ(): Question {
+  const seq = pick([1001, 5000, 12000, 28501])
+  const bytes = pick([500, 800, 1000, 1500])
+  const ack = seq + bytes
+  const truth = [true, true, false]
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Sequence and ACK numbers',
+    difficulty: 'brutal',
+    context: `A TCP segment starts at SEQ ${seq} and carries ${bytes} payload bytes. It is received contiguously.`,
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      `The last payload byte has sequence number ${ack - 1}.`,
+      `The receiver’s cumulative ACK should be ${ack}.`,
+      `An ACK of ${ack - 1} would correctly mean “all bytes through ${ack - 1} received”.`,
+    ],
+    explanation: `X and Y are true. TCP ACK is the next expected byte, so the correct ACK is ${ack}, not the last byte received.`,
+    trap: 'ACK = next expected byte.',
+    source: 'Generated from TCP byte-stream sequencing material',
+    tags: ['TCP', 'SEQ', 'ACK'],
+  }, truth, 'prof-gen-tcp-ack')
+}
+
+function tcpWindowXYZ(): Question {
+  const awnd = pick([32, 64, 128])
+  const cwnd = pick([8, 16, 32])
+  const limit = Math.min(awnd, cwnd)
+  const truth = [true, true, false]
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Flow vs congestion control',
+    difficulty: 'brutal',
+    context: `The receiver advertises ${awnd} KB. The sender has cwnd = ${cwnd} KB. Assume enough application data is available.`,
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      `The maximum unacknowledged data in flight is ${limit} KB.`,
+      'The advertised window protects the receiver, whereas cwnd is sender-side congestion control.',
+      'If the advertised window is larger than cwnd, the sender must ignore cwnd and use the full advertised window.',
+    ],
+    explanation: 'X and Y are true. The smaller constraint limits in-flight data. A larger advertised window does not override a smaller cwnd.',
+    trap: 'Both are “windows”, but they represent different constraints.',
+    source: 'Generated from TCP flow/congestion control material',
+    tags: ['TCP', 'advertised window', 'cwnd'],
+  }, truth, 'prof-gen-tcp-window')
+}
+
+function tcpSlowStartXYZ(): Question {
+  const truth = [true, false, true]
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Slow start and AIMD',
+    difficulty: 'brutal',
+    prompt: 'Which of the following statements are TRUE about the supplied congestion-control recap?',
+    statements: [
+      'Slow Start can approximately double cwnd once per lossless RTT.',
+      'AIMD means additive decrease and multiplicative increase.',
+      'After loss, a multiplicative reduction of cwnd is part of the basic AIMD idea.',
+    ],
+    explanation: 'X and Z are true. AIMD means additive increase and multiplicative decrease, not the reverse.',
+    trap: 'Professor-style wording often flips one word in a familiar acronym expansion.',
+    source: 'Generated from TCP Slow Start/AIMD recap',
+    tags: ['TCP', 'Slow Start', 'AIMD'],
+  }, truth, 'prof-gen-tcp-slowstart')
+}
+
+function tcpLossXYZ(): Question {
+  const truth = [true, true, false]
+  return xyzQuestion({
+    domain: 'tcp',
+    topic: 'Loss recovery',
+    difficulty: 'brutal',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'An out-of-order segment can cause the receiver to repeat the ACK for the next missing byte.',
+      'Duplicate ACKs can allow retransmission before the retransmission timer expires.',
+      'Receiving an out-of-order segment means the cumulative ACK must advance past the missing gap.',
+    ],
+    explanation: 'X and Y are true. The cumulative ACK stays at the next missing byte until the gap is filled.',
+    trap: 'Out-of-order arrival and cumulative acknowledgment are not the same thing.',
+    source: 'Generated from TCP duplicate-ACK / fast-retransmit material',
+    tags: ['TCP', 'duplicate ACK', 'fast retransmit'],
+  }, truth, 'prof-gen-tcp-loss')
+}
+
 export function generateProfessorQuestion(domain: Domain, difficulty: Difficulty): Question {
   const byDomain: Record<Domain, Array<() => Question>> = {
     wireless: [wirelessBudgetXYZ, wirelessWordingXYZ],
     satellite: [satelliteQueueXYZ, satelliteFlowXYZ],
     starlink: [starlinkUsabilityXYZ, starlinkCapacityXYZ, starlinkIslXYZ],
+    tcp: [tcpHandshakeXYZ, tcpAckXYZ, tcpWindowXYZ, tcpSlowStartXYZ, tcpLossXYZ],
   }
   const q = pick(byDomain[domain])()
   if (difficulty === 'core') q.difficulty = 'core'

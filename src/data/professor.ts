@@ -274,3 +274,136 @@ export const professorQuestions: Question[] = [
 ]
 
 export { singletonOptions, pairOptions }
+
+
+professorQuestions.push(
+  {
+    id: 'prof-tcp-handshake',
+    domain: 'tcp',
+    topic: 'Three-way handshake',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A client chooses ISN 1000 and a server chooses ISN 5000.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'The server SYN-ACK should acknowledge 1001.',
+      'The client’s final handshake segment should use ACK number 5001.',
+      'The client’s final handshake segment should still have SYN = 1.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. SYN consumes one sequence number for handshake acknowledgment, so each side acknowledges the other ISN + 1. The third packet is ACK-only with SYN = 0.',
+    trap: 'Do not carry the SYN flag into the third handshake packet just because the sequence space advanced.',
+    source: 'TCP Fundamentals + TCP quick re-cap — connection setup',
+    tags: ['Professor U', 'XYZ', 'TCP', 'handshake']
+  },
+  {
+    id: 'prof-tcp-seq-ack',
+    domain: 'tcp',
+    topic: 'Sequence and ACK numbers',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A sender transmits 800 bytes starting at Sequence Number 5000, and the receiver gets all bytes contiguously.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'The payload spans byte sequence numbers 5000 through 5799.',
+      'The cumulative ACK should be 5800.',
+      'An ACK of 5799 would mean the receiver is asking for byte 5799 next.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. TCP ACK is the next expected byte. ACK 5800 confirms all bytes through 5799. Therefore Z is false.',
+    trap: 'ACK is “next needed”, not “last received”.',
+    source: 'TCP Fundamentals — byte-level sequencing',
+    tags: ['Professor U', 'XYZ', 'TCP', 'SEQ', 'ACK']
+  },
+  {
+    id: 'prof-tcp-flow-cwnd',
+    domain: 'tcp',
+    topic: 'Flow vs congestion control',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    context: 'A receiver advertises 64 KB free space. The sender currently has cwnd = 16 KB.',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'Ignoring a smaller application-data limit, the sender may have at most 16 KB unacknowledged in flight.',
+      'The advertised window primarily protects the receiver from being overrun.',
+      'cwnd is maintained by the receiving application and tells the sender the free receive-buffer space.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. Effective transmission is constrained by the smaller of advertised window and cwnd. Advertised window is receiver flow control; cwnd is a sender-side congestion-control variable.',
+    trap: 'Advertised window and cwnd both limit in-flight data, but they protect different things and live on different sides.',
+    source: 'TCP Fundamentals — flow control and congestion window',
+    tags: ['Professor U', 'XYZ', 'TCP', 'cwnd', 'advertised window']
+  },
+  {
+    id: 'prof-tcp-dupacks',
+    domain: 'tcp',
+    topic: 'Loss recovery',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    prompt: 'Which of the following statements are TRUE about loss recovery in the supplied TCP material?',
+    statements: [
+      'An out-of-order segment can cause the receiver to repeat the ACK for the next missing byte.',
+      'Several duplicate ACKs can trigger retransmission before the RTO expires.',
+      'A duplicate ACK means the receiver has definitely received all bytes through the out-of-order segment.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. Duplicate ACKs point to a gap: later data may have arrived, but the cumulative ACK cannot move past the missing byte.',
+    trap: 'Receiving later bytes does not advance the cumulative ACK across a gap.',
+    source: 'TCP Fundamentals + TCP quick re-cap — duplicate ACKs',
+    tags: ['Professor U', 'XYZ', 'TCP', 'duplicate ACK', 'fast retransmit']
+  },
+  {
+    id: 'prof-tcp-slowstart',
+    domain: 'tcp',
+    topic: 'Slow start and AIMD',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    prompt: 'Which of the following statements are TRUE about the congestion-control recap?',
+    statements: [
+      'During Slow Start, increasing cwnd by one for each ACK can make cwnd approximately double each RTT.',
+      'After ssthresh, congestion avoidance uses linear/additive growth rather than exponential Slow Start growth.',
+      'A loss event requires cwnd to increase multiplicatively.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. Slow Start grows exponentially at roughly a doubling per RTT; congestion avoidance uses additive growth. Loss triggers multiplicative decrease, not increase.',
+    trap: 'The words additive/multiplicative and increase/decrease are easy to swap under time pressure.',
+    source: 'TCP quick re-cap — Slow Start and AIMD',
+    tags: ['Professor U', 'XYZ', 'TCP', 'slow start', 'AIMD']
+  },
+  {
+    id: 'prof-tcp-flavours',
+    domain: 'tcp',
+    topic: 'TCP flavours',
+    difficulty: 'brutal',
+    type: 'single',
+    format: 'professor-xyz',
+    prompt: 'Which of the following statements are TRUE according to the recap?',
+    statements: [
+      'Hybla is aimed at high-latency links such as satellite.',
+      'CUBIC is listed as the current Linux default in the supplied recap.',
+      'Two TCP endpoints must use the same flavour or the connection cannot work.',
+    ],
+    statementTruth: [true, true, false],
+    options: pairOptions,
+    answers: [0],
+    explanation: 'X and Y are true. The recap also says different TCP flavours are usually interoperable, so Z is false.',
+    trap: 'Different congestion-control algorithms do not imply incompatible TCP wire protocols.',
+    source: 'TCP quick re-cap — TCP flavours',
+    tags: ['Professor U', 'XYZ', 'TCP', 'Hybla', 'CUBIC']
+  }
+)

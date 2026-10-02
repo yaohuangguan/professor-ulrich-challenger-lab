@@ -5,6 +5,7 @@ import { satelliteQuestions } from './satellite'
 import { satelliteExtraQuestions } from './satelliteextra'
 import { starlinkQuestions } from './starlink'
 import { starlinkExtraQuestions } from './starlinkextra'
+import { tcpQuestions } from './tcp'
 import { examEvidenceQuestions } from './examevidence'
 import { professorQuestions } from './professor'
 import { generateQuestion } from './generators'
@@ -17,6 +18,7 @@ export const staticQuestions: Question[] = [
   ...satelliteExtraQuestions,
   ...starlinkQuestions,
   ...starlinkExtraQuestions,
+  ...tcpQuestions,
   ...examEvidenceQuestions,
   ...professorQuestions,
 ]
@@ -78,6 +80,19 @@ export const topicCoverage: Record<Domain, string[]> = {
     'Laser ISLs',
     'Routing',
     'Content delivery',
+  ],
+  tcp: [
+    'TCP overview',
+    'Ports and header fields',
+    'Three-way handshake',
+    'Sequence and ACK numbers',
+    'Loss recovery',
+    'Flow control',
+    'Flow vs congestion control',
+    'Transmission window',
+    'Congestion control',
+    'Slow start and AIMD',
+    'TCP flavours',
   ],
 }
 

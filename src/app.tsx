@@ -22,6 +22,7 @@ const domainMeta: Record<Domain, { label: string; sub: string }> = {
   wireless: { label: 'Wireless', sub: 'dB · Link budget · SNR · Shannon' },
   satellite: { label: 'Satellite', sub: 'GEO/MEO · BDP · TCP queues' },
   starlink: { label: 'Starlink', sub: 'EPFD · beams · geometry · ISLs' },
+  tcp: { label: 'TCP', sub: 'SEQ/ACK · windows · loss · cwnd · flavours' },
 }
 
 const copy = {
@@ -66,7 +67,7 @@ const copy = {
     weakEmpty: '先做几道，系统会按 topic 记录正确率。',
     why: 'PROFESSOR U MODE',
     whyDesc: 'X/Y/Z 先逐条判真伪，再处理 A–E。生成器会故意换组合映射，防止你形成 “E 就是多个正确” 的条件反射。',
-    footer: '题目依据：你的 Wireless / Satellite Internet / Starlink 课件 + 已提供的 Test 题面。',
+    footer: '题目依据：你的 Wireless / Satellite Internet / Starlink / TCP 资料 + 已提供的 Test 题面。',
     reset: '重置统计',
     resetConfirm: '确定清空本浏览器里的全部练习统计吗？',
     truthAudit: 'X/Y/Z 真值',
@@ -75,6 +76,8 @@ const copy = {
     curated: '固定题',
     generators: '生成变式',
     language: '界面语言',
+    share: '复制分享链接',
+    copied: '已复制',
   },
   en: {
     subtitle: 'Train qualifiers, X/Y/Z combination logic, cross-concept reasoning and calculation traps — not memorisation.',
@@ -117,7 +120,7 @@ const copy = {
     weakEmpty: 'Answer a few questions and topic-level accuracy will appear here.',
     why: 'PROFESSOR U MODE',
     whyDesc: 'Judge X/Y/Z first, then A–E. The generator deliberately swaps combination mappings so “E means many true” never becomes a shortcut.',
-    footer: 'Source basis: your Wireless / Satellite Internet / Starlink decks plus the test questions you provided.',
+    footer: 'Source basis: your Wireless / Satellite Internet / Starlink / TCP materials plus the test questions you provided.',
     reset: 'Reset stats',
     resetConfirm: 'Reset all local practice statistics?',
     truthAudit: 'X/Y/Z truth audit',
@@ -126,6 +129,8 @@ const copy = {
     curated: 'curated',
     generators: 'generators',
     language: 'UI language',
+    share: 'Copy share URL',
+    copied: 'Copied',
   },
 } as const
 
@@ -161,6 +166,8 @@ function loadAttempts(): Attempt[] {
 }
 
 function loadLanguage(): UiLanguage {
+  const urlValue = new URLSearchParams(window.location.search).get('lang')
+  if (urlValue === 'en' || urlValue === 'zh') return urlValue
   const value = localStorage.getItem('742-ui-language')
   return value === 'en' ? 'en' : 'zh'
 }
@@ -186,6 +193,7 @@ export default function App() {
   const [recentIds, setRecentIds] = useState<string[]>([])
   const [attempts, setAttempts] = useState<Attempt[]>(loadAttempts)
   const [showCoverage, setShowCoverage] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
   const [mockQuestions, setMockQuestions] = useState<Question[]>([])
   const [mockIndex, setMockIndex] = useState(0)
   const [mockScore, setMockScore] = useState(0)
@@ -199,6 +207,10 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('742-ui-language', language)
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+    const url = new URL(window.location.href)
+    url.searchParams.set('lang', language)
+    window.history.replaceState(null, '', url)
   }, [language])
 
   useEffect(() => {
@@ -338,6 +350,18 @@ export default function App() {
     loadPractice()
   }
 
+  async function copyShareUrl() {
+    const url = new URL(window.location.href)
+    url.searchParams.set('lang', language)
+    try {
+      await navigator.clipboard.writeText(url.toString())
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 1400)
+    } catch {
+      window.prompt(language === 'zh' ? '复制这个链接：' : 'Copy this URL:', url.toString())
+    }
+  }
+
   const domainStatic = staticQuestions.filter((q) => q.domain === domain)
   const topicCounts = new Map<string, number>()
   for (const q of domainStatic) {
@@ -375,6 +399,9 @@ export default function App() {
               EN
             </button>
           </div>
+          <button className="ghost share-button" onClick={copyShareUrl}>
+            {shareCopied ? t.copied : t.share}
+          </button>
           <button className="ghost" onClick={() => setShowCoverage((v) => !v)}>
             {showCoverage ? t.hideCoverage : t.coverage}
           </button>

@@ -235,11 +235,83 @@ function starlinkVisibleUsable(): Question {
   }, 'Visible but not usable', ['Usable because elevation alone decides', 'Not visible and not usable', 'Guaranteed usable if Ku band is enabled'], 'gen-st-visible')
 }
 
+function tcpHandshake(): Question {
+  const clientIsn = pick([1000, 2400, 7000, 12000])
+  const serverIsn = pick([5000, 9000, 15000, 30000])
+  const askServer = Math.random() < 0.5
+  const correct = askServer ? clientIsn + 1 : serverIsn + 1
+  return optionQuestion({
+    domain: 'tcp',
+    topic: 'Three-way handshake',
+    difficulty: 'tricky',
+    type: 'single',
+    prompt: askServer
+      ? `A TCP client sends SYN with ISN ${clientIsn}. What ACK number should the server place in its SYN-ACK?`
+      : `A TCP server sends SYN-ACK with ISN ${serverIsn}. What ACK number should the client place in the third handshake packet?`,
+    explanation: `A SYN consumes one sequence number for handshake acknowledgment, so the correct ACK is ISN + 1 = ${correct}.`,
+    trap: 'During the handshake, SYN advances the acknowledged sequence space even without application payload.',
+    source: 'TCP Fundamentals — three-way handshake',
+    tags: ['generated', 'TCP', 'handshake', 'ISN'],
+  }, String(correct), [String(correct - 1), String(correct + 1), '0'], 'gen-tcp-handshake')
+}
+
+function tcpSequenceAck(): Question {
+  const seq = pick([1001, 5000, 12000, 28501])
+  const bytes = pick([500, 800, 1000, 1500])
+  const ack = seq + bytes
+  return optionQuestion({
+    domain: 'tcp',
+    topic: 'Sequence and ACK numbers',
+    difficulty: 'tricky',
+    type: 'single',
+    prompt: `A TCP segment starts at Sequence Number ${seq} and carries ${bytes} bytes, all received contiguously. What cumulative ACK number should the receiver return?`,
+    explanation: `The payload covers bytes ${seq} through ${ack - 1}. TCP ACK is the next expected byte, so ACK = ${ack}.`,
+    trap: 'ACK means next expected byte, not last byte received.',
+    source: 'TCP Fundamentals — byte-level sequencing',
+    tags: ['generated', 'TCP', 'SEQ', 'ACK'],
+  }, String(ack), [String(ack - 1), String(seq + 1), String(bytes)], 'gen-tcp-ack')
+}
+
+function tcpWindow(): Question {
+  const awnd = pick([16, 32, 64, 128])
+  const cwnd = pick([8, 16, 32, 64])
+  const result = Math.min(awnd, cwnd)
+  return optionQuestion({
+    domain: 'tcp',
+    topic: 'Transmission window',
+    difficulty: 'brutal',
+    type: 'single',
+    prompt: `A TCP receiver advertises ${awnd} KB of available window and the sender has cwnd = ${cwnd} KB. Ignoring a smaller amount of application data, what is the maximum unacknowledged data allowed in flight?`,
+    explanation: `The effective transmission window is constrained by the smaller receiver-flow-control and sender-congestion-control limits: min(${awnd}, ${cwnd}) = ${result} KB.`,
+    trap: 'Advertised window and cwnd constrain different resources, but the smaller one limits in-flight data.',
+    source: 'TCP Fundamentals — effective transmission window',
+    tags: ['generated', 'TCP', 'cwnd', 'advertised window'],
+  }, `${result} KB`, [`${Math.max(awnd, cwnd)} KB`, `${awnd + cwnd} KB`, `${Math.max(1, Math.round(result / 2))} KB`], 'gen-tcp-window')
+}
+
+function tcpSlowStart(): Question {
+  const initial = pick([5, 10, 12])
+  const rtts = pick([1, 2, 3])
+  const result = initial * Math.pow(2, rtts)
+  return optionQuestion({
+    domain: 'tcp',
+    topic: 'Slow start and AIMD',
+    difficulty: 'brutal',
+    type: 'single',
+    prompt: `Assume lossless TCP Slow Start and enough data/receive window. cwnd begins at ${initial} packets. Using the recap approximation that cwnd doubles per RTT, what is cwnd after ${rtts} RTT${rtts > 1 ? 's' : ''}?`,
+    explanation: `Slow Start approximately doubles cwnd each lossless RTT: ${initial} × 2^${rtts} = ${result} packets.`,
+    trap: '“+1 per ACK” produces exponential per-RTT growth because more cwnd creates more ACKs.',
+    source: 'TCP quick re-cap — Slow Start',
+    tags: ['generated', 'TCP', 'slow start', 'cwnd'],
+  }, `${result} packets`, [`${initial + rtts} packets`, `${initial * rtts} packets`, `${result + initial} packets`], 'gen-tcp-slowstart')
+}
+
 export function generateQuestion(domain: Domain, difficulty: Difficulty): Question {
   const byDomain: Record<Domain, Array<() => Question>> = {
     wireless: [wirelessDb, wirelessLinkBudget, wirelessCombinedChange, wirelessDistance],
     satellite: [satelliteBdp, satelliteSmallVsLarge, satelliteLoadState],
     starlink: [starlinkTwoBeamCapacity, starlinkEightBeamCapacity, starlinkPowerSplit, starlinkVisibleUsable],
+    tcp: [tcpHandshake, tcpSequenceAck, tcpWindow, tcpSlowStart],
   }
   const eligible = byDomain[domain].filter((factory) => {
     const sample = factory()
