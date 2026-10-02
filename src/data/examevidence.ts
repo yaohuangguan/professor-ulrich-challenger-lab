@@ -85,3 +85,53 @@ export const examEvidenceQuestions: Question[] = [
     tags: ['past test', 'wording', 'will', 'need to', 'path loss']
   }
 ]
+
+examEvidenceQuestions.push(
+  {
+    id: 'e-t1-base-budget',
+    domain: 'wireless',
+    topic: 'Link budgets',
+    difficulty: 'brutal',
+    type: 'single',
+    prompt: 'Past Test 1 pattern: TX 22 dBm, TX feedline -3 dB, TX antenna +27 dBi, path loss -136 dB, RX antenna +34 dBi, RX feedline -4 dB. Noise floor is -95 dBm and required SNR is 49 dB. What is the fade margin?',
+    options: ['-14 dB', '-3 dB', '14 dB', '35 dB'],
+    answers: [0],
+    explanation: 'Received power = 22 - 3 + 27 - 136 + 34 - 4 = -60 dBm. Minimum required = -95 + 49 = -46 dBm. Fade margin = -60 - (-46) = -14 dB.',
+    trap: 'A high required SNR can make the minimum acceptable received power much less negative than the noise floor.',
+    source: 'Past Test 1 — reconstructed 5239/6110-style link budget',
+    tags: ['past test', 'link budget', 'fade margin', 'Test 1']
+  },
+  {
+    id: 'e-t1-plus13',
+    domain: 'wireless',
+    topic: 'Link budgets',
+    difficulty: 'brutal',
+    type: 'single',
+    prompt: 'Using the same past-Test-1 link with received power -60 dBm and minimum required -46 dBm: if TX power is increased by 13 dB and NOTHING else changes, does the link now meet the requirement?',
+    options: [
+      'No. Received power becomes -47 dBm, still 1 dB below the -46 dBm minimum',
+      'Yes. Any positive TX increase guarantees success',
+      'Yes. Received power becomes -46 dBm exactly',
+      'Cannot be determined because TX power never affects received power'
+    ],
+    answers: [0],
+    explanation: 'A +13 dB TX change raises -60 dBm to -47 dBm. The minimum is -46 dBm, so fade margin is still -1 dB.',
+    trap: '“Almost enough” is still a failed link when the modeled fade margin is negative.',
+    source: 'Past Test 1 — reconstructed Q10 change X',
+    tags: ['past test', 'TX power', 'threshold', 'Test 1']
+  },
+  {
+    id: 'e-t1-antennagain22',
+    domain: 'wireless',
+    topic: 'Link budgets',
+    difficulty: 'brutal',
+    type: 'single',
+    prompt: 'Using the same past-Test-1 link with -14 dB fade margin: both TX and RX antenna gains are increased by 11 dB each. What is the new fade margin?',
+    options: ['-3 dB', '0 dB', '8 dB', '22 dB'],
+    answers: [2],
+    explanation: 'The two antenna gains add independently in the link budget: +11 + +11 = +22 dB. New margin = -14 + 22 = +8 dB.',
+    trap: 'When BOTH ends change, add both gain improvements. Do not count the 11 dB only once.',
+    source: 'Past Test 1 — reconstructed Q10 change Z',
+    tags: ['past test', 'antenna gain', 'both ends', 'Test 1']
+  }
+)
