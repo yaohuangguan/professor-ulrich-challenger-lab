@@ -1,14 +1,20 @@
 import type { Difficulty, Domain, Question } from '../types'
 import { wirelessQuestions } from './wireless'
+import { wirelessExtraQuestions } from './wirelessextra'
 import { satelliteQuestions } from './satellite'
+import { satelliteExtraQuestions } from './satelliteextra'
 import { starlinkQuestions } from './starlink'
+import { starlinkExtraQuestions } from './starlinkextra'
 import { examEvidenceQuestions } from './examevidence'
 import { generateQuestion } from './generators'
 
 export const staticQuestions: Question[] = [
   ...wirelessQuestions,
+  ...wirelessExtraQuestions,
   ...satelliteQuestions,
+  ...satelliteExtraQuestions,
   ...starlinkQuestions,
+  ...starlinkExtraQuestions,
   ...examEvidenceQuestions,
 ]
 
@@ -18,6 +24,7 @@ export const topicCoverage: Record<Domain, string[]> = {
   wireless: [
     'Decibels',
     'dBm / dBW',
+    'Wireless system blocks',
     'Feedlines',
     'Antennas',
     'Antenna gain',
@@ -31,6 +38,7 @@ export const topicCoverage: Record<Domain, string[]> = {
     'Path loss',
     'Link budgets',
     'Combined link-budget changes',
+    'Reliability / fade margin',
   ],
   satellite: [
     'Satellite architectures',
@@ -52,14 +60,17 @@ export const topicCoverage: Record<Domain, string[]> = {
     'Starlink bands',
     'Architecture',
     'Dishy',
+    'Teleports / gateways',
     'Ground segment cells',
     'Beams and spectrum reuse',
     'Satellite generations',
+    'Constellation design',
     'Visible vs usable satellites',
     'Geostationary arc protection',
     'EPFD',
     'Cell capacity',
     'Late-2025 co-frequency beams',
+    'Capacity scaling',
     'User density management',
     'Laser ISLs',
     'Routing',
