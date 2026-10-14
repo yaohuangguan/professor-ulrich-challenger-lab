@@ -12,6 +12,7 @@ import {
   countProfessorByDomain,
   createMock,
   nextPracticeQuestion,
+  nextVariantQuestion,
   staticQuestions,
   topicCoverage,
 } from './data/bank'
@@ -50,7 +51,10 @@ const copy = {
     single: '单选题',
     combo: 'X/Y/Z → A–E 组合题',
     check: '检查答案',
-    skip: '跳过 / 新变式',
+    skip: '跳过',
+    variant: '变式',
+    returnOriginal: '返回原题',
+    variantNotice: '同知识点变式练习 · 原题进度已保留；变式不计入原卷得分。',
     correct: '答对了。',
     wrong: '这题没对。',
     trap: '陷阱复盘',
@@ -107,7 +111,10 @@ const copy = {
     single: 'SINGLE ANSWER',
     combo: 'X/Y/Z → A–E COMBINATION',
     check: 'Check answer',
-    skip: 'Skip / new variant',
+    skip: 'Skip',
+    variant: 'Variant',
+    returnOriginal: 'Return to original',
+    variantNotice: 'Same-topic drill · original question is paused; the variant does not affect your exam score.',
     correct: 'Correct.',
     wrong: 'Not quite.',
     trap: 'Trap audit',
@@ -229,6 +236,13 @@ export default function App() {
   const [mockIndex, setMockIndex] = useState(0)
   const [mockScore, setMockScore] = useState(0)
   const [mockFinished, setMockFinished] = useState(false)
+  const [variantBase, setVariantBase] = useState<{
+    question: Question
+    selected: number[]
+    revealed: boolean
+    lastCorrect: boolean | null
+  } | null>(null)
+  const [variantSeen, setVariantSeen] = useState<Question[]>([])
 
   const t = copy[language]
 
@@ -278,13 +292,19 @@ export default function App() {
     level = difficulty,
     format = studyFormat,
   ) {
-    const next = nextPracticeQuestion(d, level, recentIds, format)
+    const signature = (q: Question) => [q.prompt, q.context ?? '', ...(q.statements ?? [])].join('|')
+    let next = nextPracticeQuestion(d, level, [...recentIds, question.id], format)
+    for (let attempt = 0; attempt < 16 && signature(next) === signature(question); attempt += 1) {
+      next = nextPracticeQuestion(d, level, [...recentIds, question.id], format)
+    }
     setQuestion(next)
     setRecentIds((prev) => [...prev.slice(-7), next.id])
     resetAnswerState()
   }
 
   function changeDomain(nextDomain: Domain) {
+    setVariantBase(null)
+    setVariantSeen([])
     setPastVersion(null)
     setExamUrl(null)
     setDomain(nextDomain)
@@ -298,6 +318,11 @@ export default function App() {
   }
 
   function changeDifficulty(next: Difficulty) {
+    if (variantBase && mode !== 'practice') returnToOriginal()
+    else {
+      setVariantBase(null)
+      setVariantSeen([])
+    }
     setDifficulty(next)
     if (mode === 'practice') {
       const q = nextPracticeQuestion(domain, next, [], studyFormat)
@@ -308,6 +333,8 @@ export default function App() {
   }
 
   function changeStudyFormat(next: StudyFormat) {
+    setVariantBase(null)
+    setVariantSeen([])
     setPastVersion(null)
     setExamUrl(null)
     setStudyFormat(next)
@@ -347,10 +374,43 @@ export default function App() {
         format: question.format,
       },
     ])
-    if (mode !== 'practice' && correct) setMockScore((s) => s + 1)
+    if (mode !== 'practice' && !variantBase && correct) setMockScore((s) => s + 1)
+  }
+
+  function returnToOriginal() {
+    if (!variantBase) return
+    setQuestion(variantBase.question)
+    setSelected(variantBase.selected)
+    setRevealed(variantBase.revealed)
+    setLastCorrect(variantBase.lastCorrect)
+    setVariantBase(null)
+    setVariantSeen([])
+  }
+
+  function showVariant() {
+    const base = variantBase?.question ?? question
+    const nextVariant = nextVariantQuestion(base, variantSeen)
+    if (!variantBase) {
+      setVariantBase({ question, selected, revealed, lastCorrect })
+    }
+    setVariantSeen((previous) => [...previous.slice(-12), nextVariant])
+    setQuestion(nextVariant)
+    resetAnswerState()
+  }
+
+  function skipQuestion() {
+    if (variantBase) {
+      returnToOriginal()
+      return
+    }
+    next()
   }
 
   function next() {
+    if (variantBase) {
+      returnToOriginal()
+      return
+    }
     if (mode === 'practice') {
       loadPractice()
       return
@@ -368,6 +428,8 @@ export default function App() {
   }
 
   function startPastExam(version: PastExamVersion) {
+    setVariantBase(null)
+    setVariantSeen([])
     const qs = examQuestionsFor(version)
     setPastVersion(version)
     setExamUrl(version)
@@ -382,6 +444,8 @@ export default function App() {
   }
 
   function startMock() {
+    setVariantBase(null)
+    setVariantSeen([])
     setPastVersion(null)
     setExamUrl(null)
     const qs = createMock(domain, difficulty, 10, studyFormat)
@@ -395,6 +459,8 @@ export default function App() {
   }
 
   function backToPractice() {
+    setVariantBase(null)
+    setVariantSeen([])
     setPastVersion(null)
     setExamUrl(null)
     setMode('practice')
@@ -579,6 +645,7 @@ export default function App() {
             <span>{questionKind}</span>
             {question.format === 'professor-xyz' && <span className="prof-badge">X/Y/Z</span>}
             {mode === 'past' && pastVersion && <span className="prof-badge">v{pastVersion} · Q{mockIndex + 1}</span>}
+            {variantBase && <span className="prof-badge">{t.variant}</span>}
             {mode !== 'practice' && (
               <span className="mock-counter">Q {mockIndex + 1}/{mockQuestions.length}</span>
             )}
@@ -596,6 +663,12 @@ export default function App() {
             </div>
           ) : (
             <>
+              {variantBase && (
+                <div className="variant-notice" role="status">
+                  <span>{t.variantNotice}</span>
+                  <button className="ghost" onClick={returnToOriginal}>{t.returnOriginal}</button>
+                </div>
+              )}
               {question.context && (
                 <div className="question-context">{highlightedText(question.context)}</div>
               )}
@@ -655,13 +728,8 @@ export default function App() {
                   >
                     {t.check}
                   </button>
-                  <button
-                    className="ghost"
-                    onClick={() => loadPractice()}
-                    disabled={mode !== 'practice'}
-                  >
-                    {t.skip}
-                  </button>
+                  <button className="ghost" onClick={skipQuestion}>{t.skip}</button>
+                  <button className="ghost" onClick={showVariant}>{t.variant}</button>
                 </div>
               ) : (
                 <div className={lastCorrect ? 'result correct-result' : 'result wrong-result'}>
@@ -690,11 +758,14 @@ export default function App() {
                     </div>
                   )}
 
-                  <button className="primary" onClick={next}>
-                    {mode !== 'practice' && mockIndex + 1 >= mockQuestions.length
-                      ? t.finish
-                      : t.next}
-                  </button>
+                  <div className="answer-actions">
+                    <button className="primary" onClick={next}>
+                      {variantBase ? t.returnOriginal : mode !== 'practice' && mockIndex + 1 >= mockQuestions.length
+                        ? t.finish
+                        : t.next}
+                    </button>
+                    {!variantBase && <button className="ghost" onClick={showVariant}>{t.variant}</button>}
+                  </div>
                 </div>
               )}
             </>

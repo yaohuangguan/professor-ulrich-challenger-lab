@@ -141,6 +141,60 @@ export function nextPracticeQuestion(
   return source[Math.floor(Math.random() * source.length)]
 }
 
+/**
+ * Find a real sibling question, not an unrelated random question.
+ * Parameterised variants are preferred; photographed originals cannot be
+ * surfaced early and spoil the replayed exam.
+ */
+export function nextVariantQuestion(
+  original: Question,
+  seen: Question[] = [],
+): Question {
+  const signature = (q: Question) => [q.prompt, q.context ?? '', ...(q.statements ?? [])].join('|')
+  const used = new Set([original, ...seen].map(signature))
+  const generatorFormat: StudyFormat = original.format === 'professor-xyz' ? 'professor' : 'standard'
+  const choices: Question[] = []
+
+  for (let i = 0; i < 70; i += 1) {
+    const candidate = generatedFor(original.domain, 'brutal', generatorFormat)
+    if (candidate.topic === original.topic && !used.has(signature(candidate))) {
+      choices.push(candidate)
+      used.add(signature(candidate))
+    }
+    if (choices.length >= 6) break
+  }
+  if (choices.length) return choices[Math.floor(Math.random() * choices.length)]
+
+  const sameTopic = staticQuestions.filter((q) =>
+    q.topic === original.topic &&
+    q.domain === original.domain &&
+    !q.id.startsWith('past-') &&
+    !used.has(signature(q)),
+  )
+  const matchingFormat = sameTopic.filter((q) => q.format === original.format)
+  const pool = matchingFormat.length ? matchingFormat : sameTopic
+  if (pool.length) return pool[Math.floor(Math.random() * pool.length)]
+
+  // All available sibling questions have already been practised. Recycle a
+  // sibling rather than silently drifting into a completely unrelated topic.
+  const reusable = staticQuestions.filter((q) =>
+    q.topic === original.topic && q.domain === original.domain &&
+    q.id !== original.id && !q.id.startsWith('past-'),
+  )
+  if (reusable.length) return reusable[Math.floor(Math.random() * reusable.length)]
+
+  // Last-resort variation: reshuffle A–E choices without changing the key.
+  // Keep it structurally correct rather than manufacturing a false new fact.
+  const order = original.options.map((_, i) => i).reverse()
+  return {
+    ...original,
+    id: 'variant-options-' + original.id,
+    options: order.map((i) => original.options[i]),
+    answers: original.answers.map((i) => order.indexOf(i)),
+    source: original.source + ' — alternate option order',
+  }
+}
+
 function uniqueByTopic(xs: Question[]) {
   const copy = [...xs].sort(() => Math.random() - 0.5)
   const seen = new Set<string>()
