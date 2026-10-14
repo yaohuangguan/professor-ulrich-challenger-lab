@@ -4,6 +4,7 @@ export type QuestionType = 'single' | 'multi'
 export type QuestionFormat = 'standard' | 'professor-xyz'
 export type StudyFormat = 'professor' | 'mixed' | 'standard'
 export type UiLanguage = 'zh' | 'en'
+export type MistakeKind = 'calculation' | 'necessity' | 'causality' | 'category' | 'absolute' | 'irrelevance' | 'mapping'
 
 export interface Question {
   id: string
@@ -19,7 +20,10 @@ export interface Question {
   options: string[]
   answers: number[]
   explanation: string
+  explanationZh?: string
   trap?: string
+  trapZh?: string
+  mistakeKinds?: MistakeKind[]
   source: string
   tags: string[]
 }

@@ -16,6 +16,7 @@ import {
   topicCoverage,
 } from './data/bank'
 import { examEvidenceQuestions } from './data/examevidence'
+import { examQuestionsFor, pastExamMeta, pastExamQuestions, type PastExamVersion } from './data/pastexams'
 import { professorQuestions } from './data/professor'
 
 const domainMeta: Record<Domain, { label: string; sub: string }> = {
@@ -44,7 +45,7 @@ const copy = {
     coverageTitle: '知识点覆盖矩阵',
     coverageDesc: 'Mock 优先跨 topic；Brutal 会混入参数化新题，防止只背原题。',
     evidenceTitle: '真实考试证据层',
-    evidenceDesc: '已把你刚发的 5 道真实 Test 题按原 X/Y/Z + A–E 结构加入。生成题会随机切换两套组合映射，并混入看似专业但逻辑无关的废话项。',
+    evidenceDesc: 'Test 1 v5239（Wireless，10题）和 Test 2 v8246（Satellite，5题）已按原题面独立归档。另有重构题型和生成变式。',
     selectAll: '多选题',
     single: '单选题',
     combo: 'X/Y/Z → A–E 组合题',
@@ -78,6 +79,10 @@ const copy = {
     language: '界面语言',
     share: '复制分享链接',
     copied: '已复制',
+    pastTitle: '考试原题 · 顺序复现',
+    pastDesc: '按原试卷顺序练习，保留题面数字、A–E 选项和 X/Y/Z 对应关系。',
+    pastCaution: '答案为独立推导，非官方批改结果；部分卫星 TCP 题取决于课堂模型。',
+    pastRestart: '重做本套原题',
   },
   en: {
     subtitle: 'Train qualifiers, X/Y/Z combination logic, cross-concept reasoning and calculation traps — not memorisation.',
@@ -97,7 +102,7 @@ const copy = {
     coverageTitle: 'Concept coverage matrix',
     coverageDesc: 'Mocks prefer topic diversity; Brutal mode mixes in parameterised variants so you cannot memorise surfaces.',
     evidenceTitle: 'Past-test evidence layer',
-    evidenceDesc: 'The five photographed test questions are represented in their original X/Y/Z + A–E structure. Generated drills also include technical-sounding but irrelevant statements.',
+    evidenceDesc: 'Test 1 v5239 (Wireless, 10) and Test 2 v8246 (Satellite, 5) are archived as original-paper replays. Reconstructed and generated drills stay separate.',
     selectAll: 'SELECT ALL THAT APPLY',
     single: 'SINGLE ANSWER',
     combo: 'X/Y/Z → A–E COMBINATION',
@@ -131,6 +136,10 @@ const copy = {
     language: 'UI language',
     share: 'Copy share URL',
     copied: 'Copied',
+    pastTitle: 'Real exam papers · in original order',
+    pastDesc: 'Replay the photographed papers with original numbers, A–E choices and X/Y/Z mappings.',
+    pastCaution: 'Answers are independently derived, not official marking feedback. Satellite TCP cases use the course model.',
+    pastRestart: 'Replay this paper',
   },
 } as const
 
@@ -187,14 +196,27 @@ function loadStudyFormat(): StudyFormat {
   return 'professor'
 }
 
+function loadPastVersion(): PastExamVersion | null {
+  const v = new URLSearchParams(window.location.search).get('exam')
+  return v === '5239' || v === '8246' ? v : null
+}
+
+function setExamUrl(version: PastExamVersion | null) {
+  const url = new URL(window.location.href)
+  if (version) url.searchParams.set('exam', version)
+  else url.searchParams.delete('exam')
+  window.history.replaceState(null, '', url)
+}
+
 export default function App() {
   const [language, setLanguage] = useState<UiLanguage>(loadLanguage)
   const [studyFormat, setStudyFormat] = useState<StudyFormat>(loadStudyFormat)
-  const [domain, setDomain] = useState<Domain>('wireless')
+  const [domain, setDomain] = useState<Domain>(() => loadPastVersion() ? pastExamMeta[loadPastVersion()!].domain : 'wireless')
   const [difficulty, setDifficulty] = useState<Difficulty>('brutal')
-  const [mode, setMode] = useState<'practice' | 'mock'>('practice')
+  const [mode, setMode] = useState<'practice' | 'mock' | 'past'>(() => loadPastVersion() ? 'past' : 'practice')
+  const [pastVersion, setPastVersion] = useState<PastExamVersion | null>(loadPastVersion)
   const [question, setQuestion] = useState<Question>(() =>
-    nextPracticeQuestion('wireless', 'brutal', [], loadStudyFormat()),
+    loadPastVersion() ? examQuestionsFor(loadPastVersion()!)[0] : nextPracticeQuestion('wireless', 'brutal', [], loadStudyFormat()),
   )
   const [selected, setSelected] = useState<number[]>([])
   const [revealed, setRevealed] = useState(false)
@@ -203,7 +225,7 @@ export default function App() {
   const [attempts, setAttempts] = useState<Attempt[]>(loadAttempts)
   const [showCoverage, setShowCoverage] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
-  const [mockQuestions, setMockQuestions] = useState<Question[]>([])
+  const [mockQuestions, setMockQuestions] = useState<Question[]>(() => loadPastVersion() ? examQuestionsFor(loadPastVersion()!) : [])
   const [mockIndex, setMockIndex] = useState(0)
   const [mockScore, setMockScore] = useState(0)
   const [mockFinished, setMockFinished] = useState(false)
@@ -263,6 +285,8 @@ export default function App() {
   }
 
   function changeDomain(nextDomain: Domain) {
+    setPastVersion(null)
+    setExamUrl(null)
     setDomain(nextDomain)
     setMode('practice')
     setMockFinished(false)
@@ -284,6 +308,8 @@ export default function App() {
   }
 
   function changeStudyFormat(next: StudyFormat) {
+    setPastVersion(null)
+    setExamUrl(null)
     setStudyFormat(next)
     setMode('practice')
     setMockFinished(false)
@@ -321,7 +347,7 @@ export default function App() {
         format: question.format,
       },
     ])
-    if (mode === 'mock' && correct) setMockScore((s) => s + 1)
+    if (mode !== 'practice' && correct) setMockScore((s) => s + 1)
   }
 
   function next() {
@@ -341,7 +367,23 @@ export default function App() {
     resetAnswerState()
   }
 
+  function startPastExam(version: PastExamVersion) {
+    const qs = examQuestionsFor(version)
+    setPastVersion(version)
+    setExamUrl(version)
+    setDomain(pastExamMeta[version].domain)
+    setMode('past')
+    setMockQuestions(qs)
+    setMockIndex(0)
+    setMockScore(0)
+    setMockFinished(false)
+    setQuestion(qs[0])
+    resetAnswerState()
+  }
+
   function startMock() {
+    setPastVersion(null)
+    setExamUrl(null)
     const qs = createMock(domain, difficulty, 10, studyFormat)
     setMode('mock')
     setMockQuestions(qs)
@@ -353,6 +395,8 @@ export default function App() {
   }
 
   function backToPractice() {
+    setPastVersion(null)
+    setExamUrl(null)
     setMode('practice')
     setMockFinished(false)
     setMockQuestions([])
@@ -422,6 +466,28 @@ export default function App() {
         </div>
       </header>
 
+      <section className="past-exam-panel" aria-label={t.pastTitle}>
+        <div className="past-exam-intro">
+          <span className="eyebrow">ORIGINAL EXAM PAPERS · 15 QUESTIONS</span>
+          <h2>{t.pastTitle}</h2>
+          <p>{t.pastDesc}</p>
+          <small>{t.pastCaution}</small>
+        </div>
+        <div className="past-exam-actions">
+          {(['5239', '8246'] as PastExamVersion[]).map((version) => (
+            <button
+              key={version}
+              className={mode === 'past' && pastVersion === version ? 'past-exam-button active' : 'past-exam-button'}
+              onClick={() => startPastExam(version)}
+              aria-pressed={mode === 'past' && pastVersion === version}
+            >
+              <b>{pastExamMeta[version].name}</b>
+              <span>VERSION {version} · {pastExamMeta[version].count} Q</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <section className="domain-tabs" aria-label="Knowledge domain">
         {(Object.keys(domainMeta) as Domain[]).map((d) => (
           <button
@@ -476,6 +542,7 @@ export default function App() {
         <div className="stats-strip">
           <span><b>{currentAttempts.length}</b> {t.attempts}</span>
           <span><b>{accuracy}%</b> {t.accuracy}</span>
+          <span><b>{pastExamQuestions.length}</b> {language === 'zh' ? '道考试原题' : 'original exam questions'}</span>
           <span><b>{examEvidenceQuestions.length}</b> {t.pastImported}</span>
           <span><b>{professorQuestions.length}</b> {t.xyzImported}</span>
         </div>
@@ -511,7 +578,8 @@ export default function App() {
             <span>{question.topic}</span>
             <span>{questionKind}</span>
             {question.format === 'professor-xyz' && <span className="prof-badge">X/Y/Z</span>}
-            {mode === 'mock' && (
+            {mode === 'past' && pastVersion && <span className="prof-badge">v{pastVersion} · Q{mockIndex + 1}</span>}
+            {mode !== 'practice' && (
               <span className="mock-counter">Q {mockIndex + 1}/{mockQuestions.length}</span>
             )}
           </div>
@@ -522,7 +590,7 @@ export default function App() {
               <h2>{mockScore} / {mockQuestions.length}</h2>
               <p>{t.mockDesc}</p>
               <div className="mock-actions">
-                <button className="primary" onClick={startMock}>{t.anotherMock}</button>
+                <button className="primary" onClick={() => mode === 'past' && pastVersion ? startPastExam(pastVersion) : startMock()}>{mode === 'past' ? t.pastRestart : t.anotherMock}</button>
                 <button className="ghost" onClick={backToPractice}>{t.returnPractice}</button>
               </div>
             </div>
@@ -590,7 +658,7 @@ export default function App() {
                   <button
                     className="ghost"
                     onClick={() => loadPractice()}
-                    disabled={mode === 'mock'}
+                    disabled={mode !== 'practice'}
                   >
                     {t.skip}
                   </button>
@@ -613,17 +681,17 @@ export default function App() {
                     </div>
                   )}
 
-                  <p>{question.explanation}</p>
+                  <p>{language === 'zh' ? question.explanationZh ?? question.explanation : question.explanation}</p>
 
                   {question.trap && (
                     <div className="trap-box">
                       <b>{t.trap}</b>
-                      <span>{question.trap}</span>
+                      <span>{language === 'zh' ? question.trapZh ?? question.trap : question.trap}</span>
                     </div>
                   )}
 
                   <button className="primary" onClick={next}>
-                    {mode === 'mock' && mockIndex + 1 >= mockQuestions.length
+                    {mode !== 'practice' && mockIndex + 1 >= mockQuestions.length
                       ? t.finish
                       : t.next}
                   </button>
