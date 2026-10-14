@@ -22,6 +22,15 @@ The **Past Exams** section at the top replays two complete photographed paper ve
 - Question IDs encode paper and index (e.g. `past-8246-q04`). Link query parameter `?exam=8246` opens the corresponding paper directly, including after refresh.
 - Use `npm test` to check 15 question IDs, answer keys, link-budget calculations, bilingual feedback and X/Y/Z answer mapping.
 
+## Skip and same-topic variants
+
+The answer toolbar has separate **Skip** and **Variant** actions (Chinese: 跳过 / 变式).
+
+- **Skip** advances to a new practice question or to the next question of a mock/original paper without awarding a point. Skipping the last exam question finishes that paper.
+- **Variant** opens a question on the **same topic**. When the question originated in a mock or original paper, its slot, answer selection, and score are preserved until **Return to original**. Variant answers never add to the exam score.
+- Original exam questions are excluded from variant selection so no later original-paper questions are leaked prematurely.
+- After answering any question, you can open another variant without changing your original-paper result.
+
 ## Coverage
 
 - **Wireless** — dB/dBm/dBW, antennas, Friis/path loss, thermal noise, interference/fading, Shannon-Hartley, QAM/SNR, link budgets and fade margin.
