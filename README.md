@@ -6,6 +6,22 @@ Production: https://compsci742-trap-lab.pages.dev/
 
 Repository: https://github.com/yaohuangguan/professor-ulrich-challenger-lab
 
+## Original photographed Test papers
+
+The **Past Exams** section at the top replays two complete photographed paper versions **in the printed order**, with original English prompts, A–E option ordering, X/Y/Z statements, bilingual reasoning and mistake traps:
+
+| Paper | Version | Questions | Deep link |
+| --- | --- | ---: | --- |
+| Test 1 — Wireless | 5239 | 10 | [Replay 5239](https://compsci742-trap-lab.pages.dev/?lang=zh&exam=5239) |
+| Test 2 — Satellite | 8246 | 5 | [Replay 8246](https://compsci742-trap-lab.pages.dev/?lang=zh&exam=8246) |
+
+- The original questions live in `src/data/pastexams.ts`; reconstructed variants still live in `src/data/examevidence.ts`.
+- **Original-paper replay is deterministic**, unlike generated practice/mocks. It tracks answers, advances through all 10 or 5 questions and shows the final score; previously saved browser attempts are preserved.
+- Answer keys were **independently calculated**, not copied from official marking feedback. In particular, satellite TCP queue-oscillation/overload questions use the class model and must not be mistaken for officially confirmed answers.
+- Question explanations and trap audits switch between Chinese/English with the interface; the exam text and options stay English.
+- Question IDs encode paper and index (e.g. `past-8246-q04`). Link query parameter `?exam=8246` opens the corresponding paper directly, including after refresh.
+- Use `npm test` to check 15 question IDs, answer keys, link-budget calculations, bilingual feedback and X/Y/Z answer mapping.
+
 ## Coverage
 
 - **Wireless** — dB/dBm/dBW, antennas, Friis/path loss, thermal noise, interference/fading, Shannon-Hartley, QAM/SNR, link budgets and fade margin.
@@ -58,6 +74,7 @@ src/
     professorgenerators.ts
     generators.ts
     examevidence.ts
+    pastexams.ts
     bank.ts
   styles.css
   types.ts
@@ -72,6 +89,7 @@ npm install
 npm run dev
 npm run build
 npm run lint
+npm test
 ```
 
 ## Deployment

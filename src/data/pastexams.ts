@@ -1,0 +1,248 @@
+import type { Question } from '../types'
+
+/**
+ * Photographed original exam papers, transcribed from v5239 (Test 1) and
+ * v8246 (Test 2). These are distinct from the reconstructed "exam evidence"
+ * drills; option order, numeric parameters and X/Y/Z mappings are retained.
+ *
+ * Answer keys are independently derived from the question wording and
+ * calculations. They are NOT represented as official grading feedback.
+ */
+export type PastExamVersion = '5239' | '8246'
+
+export const pastExamMeta: Record<PastExamVersion, { name: string; domain: 'wireless' | 'satellite'; count: number }> = {
+  '5239': { name: 'Test 1 · Wireless', domain: 'wireless', count: 10 },
+  '8246': { name: 'Test 2 · Satellite', domain: 'satellite', count: 5 },
+}
+
+const wirelessBudget = 'The following two questions assume a wireless link for which the following parameters are known: The carrier frequency of the link is 6110 MHz, and the bandwidth of its 256QAM signal is 71 MHz. The transmitter sends 22 dBm into a feedline with a loss of 3 dB. At the transmitter end, the antenna has a gain of 27 dBi. At the receiver end, the antenna has a gain of 34 dBi. It connects to the receiver via a feedline with 4 dB loss. The path loss across the 27000 m link distance is -136 dB, and the noise floor is -95 dBm. The 256QAM modulation requires a minimum SNR of 49 dB to de-modulate. We may assume Friis propagation and the absence of interference or fading effects.'
+
+const satelliteBudget = 'The following two questions assume a wireless link for which the following parameters are known: The carrier frequency of the link is 6394 MHz, and the bandwidth of its 64QAM signal is 79 MHz. The transmitter sends 23 dBm into a feedline with a loss of 2 dB. At the transmitter end, the antenna has a gain of 29 dBi. At the receiver end, the antenna has a gain of 16 dBi. It connects to the receiver via a feedline with 3 dB loss. The path loss across the 12000 m link distance is -130 dB, and the noise floor is -95 dBm. The 64QAM modulation requires a minimum SNR of 25 dB to de-modulate. We may assume Friis propagation and the absence of interference or fading effects.'
+
+export const pastExamQuestions: Question[] = [
+  {
+    id: 'past-5239-q01', domain: 'wireless', topic: 'Decibels', difficulty: 'core', type: 'single',
+    prompt: 'A power ratio of 78500:1 corresponds to approximately how many dB?',
+    options: ['49 dB', '41 dB', '40 dB', '44 dB', '48 dB'],
+    answers: [0],
+    explanation: '10 log10(78500) ≈ 48.95 dB, hence A (49 dB). A power ratio uses 10 log10, not 20 log10.',
+    explanationZh: '功率比换算用 10log₁₀(78500) ≈ 48.95 dB，因此选 A（49 dB）。电压/幅度比的 20log₁₀ 不能直接套过来。',
+    trap: 'Power ratio → 10 log10, not 20 log10.', trapZh: '功率比用 10log，不是 20log。',
+    mistakeKinds: ['calculation', 'category'], source: 'Original Test 1 · v5239 · Q1', tags: ['original exam', 'Test 1', 'dB'],
+  },
+  {
+    id: 'past-5239-q02', domain: 'wireless', topic: 'Decibels', difficulty: 'tricky', type: 'single',
+    prompt: '-44 dB + 6 dB corresponds to approximately which power ratio?',
+    options: ['0.256', '500', '0.00016', '64000', '0.0064'],
+    answers: [2],
+    explanation: '-44 + 6 = -38 dB; the linear power ratio is 10^(-38/10) ≈ 0.0001585.',
+    explanationZh: '先合并成 −38 dB，再转线性功率比：10^(−38/10) ≈ 0.0001585，选 C。负 dB 代表比值小于 1。',
+    trap: 'Add dB first, then convert; a negative dB value is not a negative power ratio.',
+    trapZh: '先加 dB 再取 10 的幂；负 dB 不代表功率比是负数。',
+    mistakeKinds: ['calculation'], source: 'Original Test 1 · v5239 · Q2', tags: ['original exam', 'Test 1', 'dB'],
+  },
+  {
+    id: 'past-5239-q03', domain: 'wireless', topic: 'dBm / dBW', difficulty: 'tricky', type: 'single',
+    context: 'Consider a power level A = -6 dBm and a power level B = 0 dBW. The following two questions relate to these power levels:',
+    prompt: 'The difference A - B is:',
+    options: ['24 dBm', '24 dBW', '-36 dBm', '-36 dB', '24 dB'],
+    answers: [3],
+    explanation: '0 dBW = 30 dBm; A - B = -6 dBm - 30 dBm = -36 dB. A difference of two absolute power levels is expressed in dB.',
+    explanationZh: '先统一单位：0 dBW = 30 dBm。A − B = −6 − 30 = −36 dB，选 D。两种功率电平相减，结果是相对量 dB，不是 dBm。',
+    trap: 'Difference in absolute levels → dB, not dBm/dBW.',
+    trapZh: '电平差值写 dB，不要沿用 dBm 或 dBW。',
+    mistakeKinds: ['calculation', 'category'], source: 'Original Test 1 · v5239 · Q3', tags: ['original exam', 'Test 1', 'dBm', 'dBW'],
+  },
+  {
+    id: 'past-5239-q04', domain: 'wireless', topic: 'dBm / dBW', difficulty: 'tricky', type: 'single',
+    context: 'Consider a power level A = -6 dBm and a power level B = 0 dBW. The following two questions relate to these power levels:',
+    prompt: 'If we increase the power B by a factor of 32, what will the difference be now?',
+    options: ['-51 dB', '24 dB', '-8 dBW', '39 dB', '-1152 dBm'],
+    answers: [0],
+    explanation: 'Increasing B by 32 multiplies its linear power, so B gains 10log10(32) ≈ 15 dB. B becomes 45 dBm; A - B = -6 - 45 ≈ -51 dB.',
+    explanationZh: 'B 增加 32 倍相当于 +10log₁₀(32) ≈ 15.05 dB，新的 B 约 45 dBm。A − B ≈ −6 − 45 = −51 dB，选 A。',
+    trap: '32× power is roughly +15 dB; keep the sign of A - B.',
+    trapZh: '功率放大 32 倍是 +15 dB；注意题目是 A 减 B，结果更负。',
+    mistakeKinds: ['calculation'], source: 'Original Test 1 · v5239 · Q4', tags: ['original exam', 'Test 1', 'dBm', 'power ratio'],
+  },
+  {
+    id: 'past-5239-q05', domain: 'wireless', topic: 'Antennas', difficulty: 'core', type: 'single',
+    prompt: 'What could you do in order to increase signal power at the receiver of a wireless link?',
+    options: [
+      'Increase transmit power and use a larger transmit antenna.',
+      'Decrease receive antenna gain and increase distance between transmitter and receiver.',
+      'Point transmit and receive antennas away from the transmitter.',
+      'Increase transmit power and distance between transmitter and receiver.',
+      'Decrease transmit power and receive antenna gain.',
+    ],
+    answers: [0],
+    explanation: 'Higher transmitter power and an appropriately larger/higher-gain transmit antenna can increase the received signal. Greater distance and reduced antenna gains tend to decrease it.',
+    explanationZh: '加大发射功率、采用更大的（在这里可提供更高增益的）发射天线，都可提升接收功率，选 A。D 同时增大距离，无法保证接收功率提升。',
+    trap: '“Could” requires a workable method; mixed changes with opposing effects are not guaranteed.',
+    trapZh: '题目是 could，A 提供明确可行的改进；D 的功率与距离变化互相抵消且幅度未知。',
+    mistakeKinds: ['necessity', 'causality'], source: 'Original Test 1 · v5239 · Q5', tags: ['original exam', 'Test 1', 'antenna', 'could'],
+  },
+  {
+    id: 'past-5239-q06', domain: 'wireless', topic: 'Thermal noise', difficulty: 'tricky', type: 'single',
+    context: 'Cheat sheet: k = 1.38 × 10^-23; water freezes at 273.15 K.',
+    prompt: 'What is the thermal noise power in dBm at a receiver that operates at 19°C with bandwidth 33 kHz around a carrier frequency at 5775 MHz?',
+    options: ['-141 dBm', '-159 dBm', '-129 dBm', '-75 dBm', '-99 dBm'],
+    answers: [2],
+    explanation: 'T = 19 + 273.15 = 292.15 K; B = 33,000 Hz; N = kTB ≈ 1.33×10^-16 W; 10log10(N/0.001 W) ≈ -128.76 dBm.',
+    explanationZh: '温度换开尔文：T = 292.15 K；带宽 B = 33,000 Hz。kTB ≈ 1.33×10⁻¹⁶ W；转 dBm 得 −128.76，约 −129 dBm，选 C。5775 MHz 载频不参与此题的 kTB。',
+    trap: 'Use kelvin and bandwidth in Hz. Carrier frequency is irrelevant to kTB here.',
+    trapZh: '19°C 不能直接带入 kTB；33 kHz 要转 Hz。载波频率 5775 MHz 是干扰信息。',
+    mistakeKinds: ['calculation', 'irrelevance', 'category'], source: 'Original Test 1 · v5239 · Q6', tags: ['original exam', 'Test 1', 'kTB', 'carrier'],
+  },
+  {
+    id: 'past-5239-q07', domain: 'wireless', topic: 'Path loss', difficulty: 'tricky', type: 'single',
+    context: 'Consider a wireless transmitter transmitting at frequency f = 2700 MHz whose signal level at a receiver 100 m away is -73 dBm.',
+    prompt: 'Assuming free space propagation, what will the signal level be at 600 m away?',
+    options: ['-2 dBm', '-12 dBm', '-57 dBm', '-89 dBm', '-2628 dBm'],
+    answers: [3],
+    explanation: 'At fixed frequency, six times the distance adds 20log10(6) ≈ 15.56 dB of path loss. -73 - 15.56 ≈ -88.56 dBm → -89 dBm.',
+    explanationZh: '距离从 100 m 变为 600 m，即 6 倍。额外自由空间损耗为 20log₁₀(6) ≈ 15.56 dB；−73 − 15.56 ≈ −89 dBm，选 D。',
+    trap: 'Use 20log10(distance factor), not 10log10(distance factor).',
+    trapZh: 'Friis 的距离变化是 20log 倍数，不是 10log。',
+    mistakeKinds: ['calculation'], source: 'Original Test 1 · v5239 · Q7', tags: ['original exam', 'Test 1', 'Friis', 'distance'],
+  },
+  {
+    id: 'past-5239-q08', domain: 'wireless', topic: 'Antenna aperture', difficulty: 'brutal', type: 'single',
+    context: 'Consider a wireless transmitter transmitting at frequency f = 2700 MHz whose signal level at a receiver 100 m away is -73 dBm.',
+    prompt: 'Assume that the receiving antenna is a dish pointing directly at the transmitter. If we changed the frequency in the original scenario (100 m away) to 21600 MHz, what would the received power level be?',
+    options: ['-55 dBm', '-73 dBm', '-1 dBm', '-4672 dBm', '-91 dBm'],
+    answers: [1],
+    explanation: 'Frequency increases 8×. Free-space path loss rises 20log10(8) ≈ 18.06 dB, but the same physical dish aperture provides approximately +18.06 dB more gain (gain ∝ f²). Under the intended fixed-aperture dish model they cancel, leaving -73 dBm.',
+    explanationZh: '频率 ×8，空间路径损耗增加约 18 dB；但同尺寸碟形接收天线的增益也增加约 18 dB，两项抵消，所以仍是 −73 dBm，选 B。仅算 FSPL 会错选 E（−91 dBm）。此结论假设碟面物理尺寸和效率基本不变。',
+    trap: 'Fixed-gain receiver vs fixed physical dish aperture lead to different frequency scaling.',
+    trapZh: '这题的致命陷阱：碟形天线面积固定≠天线增益固定；不能只加路径损耗。',
+    mistakeKinds: ['calculation', 'category', 'irrelevance'], source: 'Original Test 1 · v5239 · Q8', tags: ['original exam', 'Test 1', 'dish', 'aperture', 'frequency'],
+  },
+  {
+    id: 'past-5239-q09', domain: 'wireless', topic: 'Link budgets', difficulty: 'brutal', type: 'single', format: 'professor-xyz',
+    context: wirelessBudget,
+    prompt: 'Which of the following statements about the link are TRUE?',
+    statements: [
+      'The received power at the receiver input must be at least -75 dBm for the link to work.',
+      'The link should work if we decreased the fade margin by 8 dB.',
+      'The signal loss between transmitter and receiver is -102 dB.',
+    ],
+    statementTruth: [false, false, false],
+    options: ['X only', 'Y only', 'Z only', 'None of X, Y and Z', 'All, or two of X, Y and Z'],
+    answers: [3],
+    explanation: 'P_rx = 22-3+27+34-136-4 = -60 dBm. Required P_rx = -95+49 = -46 dBm; fade margin = -14 dB. X: -75 is not sufficient (the required level is -46). Y: reducing an already negative margin makes it worse. Z: the total net change from 22 dBm transmit level to -60 dBm receiver level is -82 dB, not -102 dB; free-space/path loss alone is -136 dB.',
+    explanationZh: '链路预算：22−3+27+34−136−4 = −60 dBm；最低接收要求为 −95+49 = −46 dBm，Fade Margin = −14 dB。X 错：最低要求不是 −75，而是 −46。Y 错：裕量已经为负，再减少 8 dB 只会更差。Z 错：从 22 dBm 发射电平到 −60 dBm 接收电平的净变化是 −82 dB，不是 −102 dB；单独的路径损耗为 −136 dB。选 D。',
+    trap: 'SNR threshold and net link loss are not the same as noise floor and path loss.',
+    trapZh: '三重混淆：Noise floor ≠ 最低接收功率；Fade margin 可以为负；净链路损耗 ≠ 空间路径损耗。',
+    mistakeKinds: ['calculation', 'category', 'mapping'], source: 'Original Test 1 · v5239 · Q9', tags: ['original exam', 'Test 1', '256QAM', 'fade margin'],
+  },
+  {
+    id: 'past-5239-q10', domain: 'wireless', topic: 'Link budgets', difficulty: 'brutal', type: 'single', format: 'professor-xyz',
+    context: wirelessBudget,
+    prompt: 'Which of the following statements about the link are TRUE?',
+    statements: [
+      'If we increase the transmitter power by 13 dB, the link should work.',
+      'If we replace the receive antenna with one that has a gain of 28 dBi, and replace the receiver feedline with one that has a loss of 5 dB, the link will not work.',
+      'If we increase the gain of the transmit and receive antennas by 11 dB each, the link should work.',
+    ],
+    statementTruth: [false, true, true],
+    options: ['X and Y only', 'X and Z only', 'Y and Z only', 'All of X, Y and Z', 'None, or only one of X, Y and Z'],
+    answers: [2],
+    explanation: 'Baseline fade margin is -14 dB. X: +13 → -1 dB, so it still fails. Y: 34→28 dBi reduces gain 6 dB; feedline 4→5 dB adds 1 dB loss: new margin -21 dB, so “will not work” is true. Z: +11 dB at each antenna = +22 dB total → +8 dB margin, so it should work.',
+    explanationZh: '基线 Fade Margin = −14 dB。X：只加 13 dB 得 −1，仍不够，错。Y：接收增益从 34 降到 28（−6），馈线损耗从 4 增至 5（−1），FM 变 −21，确实无法工作，真。Z：两端天线各 +11，总计 +22，FM = +8，可工作，真。选 C（Y、Z）。',
+    trap: 'Add both antenna gains and respect the sign: -1 dB margin still fails.',
+    trapZh: '两端各增加 11 dB 要相加；FM 只差 1 dB 仍然是不满足最低 SNR。',
+    mistakeKinds: ['calculation', 'necessity', 'mapping'], source: 'Original Test 1 · v5239 · Q10', tags: ['original exam', 'Test 1', 'fade margin', 'gain'],
+  },
+  {
+    id: 'past-8246-q01', domain: 'satellite', topic: 'Satellite architectures', difficulty: 'tricky', type: 'single', format: 'professor-xyz',
+    prompt: 'Which of the following statements are TRUE?',
+    statements: [
+      'From the position of an observer, a LEO satellite always rises vertically on the horizon and flies straight overhead.',
+      'A single orbital plane may contain more than one orbit.',
+      'A single orbit may contain more than one satellite.',
+    ],
+    statementTruth: [false, true, true],
+    options: ['X and Y only', 'X and Z only', 'Y and Z only', 'All of X, Y and Z', 'None, or only one of X, Y and Z'],
+    answers: [2],
+    explanation: 'X is false because a LEO pass need not be overhead or rise vertically. Y is possible: an orbital plane is a geometric plane, and distinct coplanar orbits can exist. Z is also possible: multiple satellites can share the same orbit at different positions.',
+    explanationZh: 'X 错：LEO 从地面看不是总垂直升起、正上方掠过。Y 真：同一轨道平面可以有多条共面轨道。Z 真：同一条轨道可以有多颗位置不同的卫星。选 C（Y、Z）。注意 Y 和 Z 说的是 may，而不是 must。',
+    trap: '“Always” invalidates X; distinguish orbit plane, orbit, and satellite.',
+    trapZh: '轨道平面、轨道、卫星是三级不同概念；always 很容易把整句判错。',
+    mistakeKinds: ['absolute', 'category', 'mapping'], source: 'Original Test 2 · v8246 · Q1', tags: ['original exam', 'Test 2', 'LEO', 'orbit'],
+  },
+  {
+    id: 'past-8246-q02', domain: 'satellite', topic: 'TCP queue oscillation', difficulty: 'brutal', type: 'single', format: 'professor-xyz',
+    prompt: 'On a MEO or GEO satellite link to a Pacific Island that is experiencing excessive TCP queue oscillation while carrying general consumer Internet traffic, which of the following would you expect?',
+    statements: [
+      'Average link utilisation measured over a period of, say, one minute, would show link utilisation close to link capacity.',
+      "The link's bandwidth-delay product will be reduced.",
+      'ACK packets will arrive before the TCP data packets have been sent.',
+    ],
+    statementTruth: [false, false, false],
+    options: ['X only', 'Y only', 'Z only', 'None of X, Y, and Z', 'All, or two of X, Y, and Z'],
+    answers: [3],
+    explanation: 'In the course’s excessive fill/drain oscillation model, persistent periods of an empty queue lead to substantial underutilisation, so X is not an expected near-capacity average. Y is false: queue behaviour does not reduce physical bandwidth×propagation delay. Z violates TCP causality: ACKs cannot acknowledge data before it is sent. This is an independently inferred, not officially marked, key.',
+    explanationZh: '按课堂的严重队列振荡模型，队列周期性清空会使链路长期存在空档，平均利用率不能预期接近容量，X 错。BDP 是带宽×往返时延，不会因 TCP 振荡就物理变小，Y 错。ACK 不能在对应数据发出前就到达，Z 错。选 D。这里的答案是基于课件模型推导，非官方公布答案；X 的措辞需要结合课堂的振荡程度理解。',
+    trap: 'A momentarily full queue is not proof that minute-averaged utilisation is close to capacity.',
+    trapZh: '瞬时拥塞和分钟级平均利用率不是一回事；不要把排队行为当成物理 BDP 改变。',
+    mistakeKinds: ['causality', 'category', 'mapping'], source: 'Original Test 2 · v8246 · Q2 · independently inferred', tags: ['original exam', 'Test 2', 'TCP', 'BDP', 'utilisation'],
+  },
+  {
+    id: 'past-8246-q03', domain: 'satellite', topic: 'Satellite link budget', difficulty: 'brutal', type: 'single', format: 'professor-xyz',
+    context: satelliteBudget,
+    prompt: 'Which of the following statements about the link are TRUE?',
+    statements: [
+      'The signal loss between transmitter and receiver is -96 dB.',
+      'The signal level going into the transmit antenna is 21 dBm.',
+      'The link should still work even if the distance between transmit and receive antenna increased to 36000 m.',
+    ],
+    statementTruth: [false, true, false],
+    options: ['X only', 'Y only', 'Z only', 'None of X, Y and Z', 'All, or two of X, Y and Z'],
+    answers: [1],
+    explanation: 'Receiver = 23-2+29+16-3-130 = -67 dBm. Required = -95+25 = -70 dBm, hence margin +3 dB. X: net change from 23 dBm to -67 dBm is -90 dB, not -96. Y: 23-2 = 21 dBm directly into TX antenna. Z: triple distance adds 20log10(3)=9.54 dB loss and makes margin about -6.54 dB.',
+    explanationZh: '接收功率 23−2+29+16−3−130 = −67 dBm；最低需要 −95+25 = −70，FM = +3 dB。X 错：发射→接收的净变化为 −90 dB，而不是 −96。Y 真：进入发射天线之前的功率 23−2 = 21 dBm。Z 错：距离变三倍，多损耗 9.54 dB，超过 3 dB 裕量。选 B。',
+    trap: 'Antenna input power excludes antenna gain; 3× distance costs about 9.54 dB.',
+    trapZh: 'going into antenna 是馈线之后、天线增益之前；距离 ×3 不是只损失 3 dB。',
+    mistakeKinds: ['calculation', 'category', 'mapping'], source: 'Original Test 2 · v8246 · Q3', tags: ['original exam', 'Test 2', '64QAM', 'fade margin'],
+  },
+  {
+    id: 'past-8246-q04', domain: 'satellite', topic: 'Satellite link budget', difficulty: 'brutal', type: 'single', format: 'professor-xyz',
+    context: satelliteBudget,
+    prompt: 'Which of the following statements about the link are TRUE?',
+    statements: [
+      'To obtain a minimum fade margin of 7 dB, we need to exchange the path loss.',
+      'To obtain a fade margin of 7 dB, we could increase the transmit power by 4 dB.',
+      'If we increase the transmit power by 6 dB, this will double the path loss.',
+    ],
+    statementTruth: [false, true, false],
+    options: ['X only', 'Y only', 'Z only', 'None of X, Y and Z', 'All, or two of X, Y and Z'],
+    answers: [1],
+    explanation: 'The original fade margin is +3 dB. X is false: “exchange the path loss” is not a defined engineering operation, and it is not necessary. Y is true: +4 dB of TX power produces a +7 dB margin. Z is false: TX power changes the received level, not the propagation path loss. Instructor explicitly described “exchange the path loss” as deliberate nonsense.',
+    explanationZh: '原 FM = +3 dB。X 错：“exchange the path loss” 不是有定义的操作，而且没有必要；老师后来也明确表示这句是故意的技术废话。Y 真：发射功率增加 4 dB 就能把 FM 提到 +7。Z 错：加大发射功率不会让传播路径损耗翻倍。选 B。',
+    trap: 'Need ≠ could. Changing TX power cannot change propagation loss.',
+    trapZh: '这题最重要：need to 和 could 不等价；技术名词拼成句子不代表逻辑成立。',
+    mistakeKinds: ['necessity', 'causality', 'irrelevance', 'mapping'], source: 'Original Test 2 · v8246 · Q4', tags: ['original exam', 'Test 2', 'exchange the path loss', 'fade margin'],
+  },
+  {
+    id: 'past-8246-q05', domain: 'satellite', topic: 'Load regimes', difficulty: 'brutal', type: 'single', format: 'professor-xyz',
+    prompt: 'On a MEO or GEO satellite link to a Pacific Island, you observe high packet loss and high link utilisation. A signal check shows a more than sufficient fade margin. What can you say about the link?',
+    statements: [
+      'Only short flows on the link have a good chance of completing.',
+      'There will be severe TCP queue oscillation.',
+      'The link performance would improve if we reduced the link data rate.',
+    ],
+    statementTruth: [true, false, false],
+    options: ['X only', 'Y only', 'Z only', 'None of X, Y and Z', 'All, or two of X, Y and Z'],
+    answers: [0],
+    explanation: 'In the course overload model, high loss + high utilisation with adequate signal margin points to sustained congestion. Short flows have a better chance than large flows (X). Severe queue oscillation instead involves periods of underutilisation (Y false). Reducing link data rate worsens the capacity bottleneck when signal margin is sufficient (Z false). This is an independently inferred, not officially marked, key.',
+    explanationZh: '根据信号余量充足、丢包高、利用率高，课堂模型更支持 overload（持续过载），而不是队列排空式 oscillation。短流相对更可能完成，X 真；Y 错；降低物理数据速率只会让容量瓶颈更严重，Z 错。选 A。该答案为课堂模型推断，非官方标准答案。',
+    trap: 'High loss + high utilisation with sufficient fade margin is a congestion clue, not an RF signal problem.',
+    trapZh: '要区分“丢包高且利用率高”的 overload 和“队列振荡导致空闲”的 underutilisation。',
+    mistakeKinds: ['causality', 'category', 'absolute', 'mapping'], source: 'Original Test 2 · v8246 · Q5 · independently inferred', tags: ['original exam', 'Test 2', 'overload', 'queue oscillation'],
+  },
+]
+
+export function examQuestionsFor(version: PastExamVersion): Question[] {
+  return pastExamQuestions.filter((q) => q.id.startsWith(`past-${version}-`))
+}

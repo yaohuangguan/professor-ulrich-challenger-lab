@@ -7,6 +7,7 @@ import { starlinkQuestions } from './starlink'
 import { starlinkExtraQuestions } from './starlinkextra'
 import { tcpQuestions } from './tcp'
 import { examEvidenceQuestions } from './examevidence'
+import { pastExamQuestions } from './pastexams'
 import { professorQuestions } from './professor'
 import { generateQuestion } from './generators'
 import { generateProfessorQuestion } from './professorgenerators'
@@ -20,6 +21,7 @@ export const staticQuestions: Question[] = [
   ...starlinkExtraQuestions,
   ...tcpQuestions,
   ...examEvidenceQuestions,
+  ...pastExamQuestions,
   ...professorQuestions,
 ]
 
